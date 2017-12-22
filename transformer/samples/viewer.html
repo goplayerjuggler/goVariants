@@ -74,6 +74,9 @@
     <div id="playerDiv" style="position:relative; height: 75vh;width: 75vw"></div>
 
     <script type="text/javascript">
+
+
+
         document.viewer = {}
         document.addEventListener('DOMContentLoaded', function () {
             var viewer = document.viewer
@@ -125,8 +128,12 @@
                     tSgf = '(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[maxiGos:6.45 (daoqi Ed)];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd])'//sample1
                 }
                 var wraparound = Number(document.getElementById('wraparoundSelect').value)
-                var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound } })
-
+                try {
+                    var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound: wraparound } })
+                }
+                catch (e) {
+                    alert('an error occurred. Maybe you need to try using a more modern browser like a recent version of Firefox or Chrome.')
+                }
                 if (!panningDirection) {
 
                     var oGameTree = GoBoardApi.Create_GameTree()
@@ -144,7 +151,7 @@
                 else {
                     var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
                     GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
-                    document.getElementById('offsetTr').innerHTML = 'panned: ['+ viewer.offset[0]+', '+viewer.offset[1]+']'
+                    document.getElementById('offsetTr').innerHTML = 'panned: [' + viewer.offset[0] + ', ' + viewer.offset[1] + ']'
                 }
 
             }
@@ -164,11 +171,40 @@
             document.getElementById('panningTable').style.display = "none"
 
         })
+        //polyfill
+        if (typeof Object.assign != 'function') {
+            // Must be writable: true, enumerable: false, configurable: true
+            Object.defineProperty(Object, "assign", {
+                value: function assign(target, varArgs) { // .length of function is 2
+                    'use strict';
+                    if (target == null) { // TypeError if undefined or null
+                        throw new TypeError('Cannot convert undefined or null to object');
+                    }
 
+                    var to = Object(target);
+
+                    for (var index = 1; index < arguments.length; index++) {
+                        var nextSource = arguments[index];
+
+                        if (nextSource != null) { // Skip over if undefined or null
+                            for (var nextKey in nextSource) {
+                                // Avoid bugs when hasOwnProperty is shadowed
+                                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                    to[nextKey] = nextSource[nextKey];
+                                }
+                            }
+                        }
+                    }
+                    return to;
+                },
+                writable: true,
+                configurable: true
+            });
+        }
     </script>
     <p>This viewer for t-Go works using the library
         <a href="https://github.com/goplayerjuggler/goVariants/tree/master/transformer">
-        Go-Variants-Transformer</a> on top of Ilya Kirillov’s SGF viewer.</p>
+            Go-Variants-Transformer</a> on top of Ilya Kirillov’s SGF viewer.</p>
 </body>
 
 </html>

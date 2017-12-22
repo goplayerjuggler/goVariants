@@ -6,127 +6,160 @@
 </head>
 
 <body>
-        <p>
-        </p>
-        
-            <script type="text/javascript" language="JavaScript" src="
+    <p>
+    </p>
+
+    <script type="text/javascript" language="JavaScript" src="
                 https://cdn.rawgit.com/IlyaKirillov/GoProject/master/WebBuilds/goboardmin.js"></script>
-        
-            <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/master/transformer/dist/transform.min.js"></script>
-            <div id="tSgfData" style="display:none">
-            </div>
-        
-            <table id="panningTable" title="panning">
-                <tr>
-                    <td colspan="2" style="text-align: center">
-                        <input type="button" id="btU" class="go-variants-panning" value="↑" />
-                    </td>
-                    <td rowspan="4" style="vertical-align: middle">“Panning”
-                        <p> Use the buttons to the left to move the “centre” of the board.</p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="button" id="btL" class="go-variants-panning" value="←" />
-                    </td>
-                    <td>
-                        <input type="button" id="btR" class="go-variants-panning" value="→" />
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="text-align: center">
-                        <input type="button" id="btD" class="go-variants-panning" value="↓" />
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="text-align: center; font-size: small" id="offsetTr">
-                        panned: [0,0]
-                    </td>
-                </tr>
-            </table>
-            <div id="playerDiv" style="position:relative; height: 75vh;width: 75vw"></div>
-        
-            <script type="text/javascript">
-                document.viewer = {}
-                document.addEventListener('DOMContentLoaded', function () {
-                    var viewer = document.viewer
-                    if (viewer.ran) return
-                    viewer.ran = true//just run this function once
-        
-        
-                    function showBoard(tSgf, panningDirection) {
-        
-                        if (!panningDirection) viewer.offset = [0, 0]
-                        if (panningDirection) {
-                            var  right = viewer.offset[0], up = viewer.offset[1]
-        
-                            switch (panningDirection) {
-        
-                                case "U":
-                                    {
-                                        up--
-                                        break
-                                    }
-        
-                                case "D":
-                                    {
-                                        up++
-                                        break
-                                    }
-                                case "L":
-                                    {
-                                        right--
-                                        break
-                                    }
-        
-                                case "R":
-                                    {
-                                        right++
-                                        break
-                                    }
+
+    <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/master/transformer/dist/transform.min.js"></script>
+    <div id="tSgfData" style="display:none">
+    </div>
+
+    <table id="panningTable" title="panning">
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <input type="button" id="btU" class="go-variants-panning" value="↑" />
+            </td>
+            <td rowspan="4" style="vertical-align: middle">“Panning”
+                <p> Use the buttons to the left to move the “centre” of the board.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="button" id="btL" class="go-variants-panning" value="←" />
+            </td>
+            <td>
+                <input type="button" id="btR" class="go-variants-panning" value="→" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <input type="button" id="btD" class="go-variants-panning" value="↓" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center; font-size: small" id="offsetTr">
+                panned: [0,0]
+            </td>
+        </tr>
+    </table>
+    <div id="playerDiv" style="position:relative; height: 75vh;width: 75vw"></div>
+
+    <script type="text/javascript">
+        document.viewer = {}
+        document.addEventListener('DOMContentLoaded', function () {
+            var viewer = document.viewer
+            if (viewer.ran) return
+            viewer.ran = true//just run this function once
+
+
+            function showBoard(tSgf, panningDirection) {
+
+                if (!panningDirection) viewer.offset = [0, 0]
+                if (panningDirection) {
+                    var right = viewer.offset[0], up = viewer.offset[1]
+
+                    switch (panningDirection) {
+
+                        case "U":
+                            {
+                                up--
+                                break
                             }
-                            viewer.offset = [right, up]
-                        }
-        
-                        if (tSgf === undefined || tSgf === null) {
-                            tSgf = document.getElementById("tSgfData").innerText
-                        }
-                        var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound: 4 } })
-        
-                        if (!panningDirection) {
-        
-                            var oGameTree = GoBoardApi.Create_GameTree()
-                            document.oGameTree = oGameTree
-        
-                            GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, "playerDiv");
-                            GoBoardApi.Load_Sgf(oGameTree, sgf);
-        
-                            window.onresize = function () {
-                                GoBoardApi.Update_Size(oGameTree);
-                            };
-        
-                        }
-                        else {
-                            var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
-                            GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
-        
-                            document.getElementById('offsetTr').innerHTML = 'panned: ['+ viewer.offset[0]+', '+viewer.offset[1]+']'
-                        }
-        
+
+                        case "D":
+                            {
+                                up++
+                                break
+                            }
+                        case "L":
+                            {
+                                right--
+                                break
+                            }
+
+                        case "R":
+                            {
+                                right++
+                                break
+                            }
                     }
-        
-                    ;[].forEach.call(document.querySelectorAll('.go-variants-panning'), function (el) {
-                        el.addEventListener('click', function (e) {
-                            var target = e.target || e.srcElement
-                            showBoard(undefined, target.id.substring(2))
-                        })
-                    });
-        
-                    showBoard()
+                    viewer.offset = [right, up]
+                }
+
+                if (tSgf === undefined || tSgf === null) {
+                    tSgf = document.getElementById("tSgfData").innerText
+                }
+                try {
+                    var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound: 4 } })
+                }
+                catch (e) {
+                    alert('an error occurred. Maybe you need to try using a more modern browser like a recent version of Firefox or Chrome.')
+                }
+                if (!panningDirection) {
+
+                    var oGameTree = GoBoardApi.Create_GameTree()
+                    document.oGameTree = oGameTree
+
+                    GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, "playerDiv");
+                    GoBoardApi.Load_Sgf(oGameTree, sgf);
+
+                    window.onresize = function () {
+                        GoBoardApi.Update_Size(oGameTree);
+                    };
+
+                }
+                else {
+                    var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
+                    GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
+
+                    document.getElementById('offsetTr').innerHTML = 'panned: [' + viewer.offset[0] + ', ' + viewer.offset[1] + ']'
+                }
+
+            }
+
+            ;[].forEach.call(document.querySelectorAll('.go-variants-panning'), function (el) {
+                el.addEventListener('click', function (e) {
+                    var target = e.target || e.srcElement
+                    showBoard(undefined, target.id.substring(2))
                 })
-        
-            </script>
-        
+            });
+
+            showBoard()
+        })
+        //polyfill
+        if (typeof Object.assign != 'function') {
+            // Must be writable: true, enumerable: false, configurable: true
+            Object.defineProperty(Object, "assign", {
+                value: function assign(target, varArgs) { // .length of function is 2
+                    'use strict';
+                    if (target == null) { // TypeError if undefined or null
+                        throw new TypeError('Cannot convert undefined or null to object');
+                    }
+
+                    var to = Object(target);
+
+                    for (var index = 1; index < arguments.length; index++) {
+                        var nextSource = arguments[index];
+
+                        if (nextSource != null) { // Skip over if undefined or null
+                            for (var nextKey in nextSource) {
+                                // Avoid bugs when hasOwnProperty is shadowed
+                                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                    to[nextKey] = nextSource[nextKey];
+                                }
+                            }
+                        }
+                    }
+                    return to;
+                },
+                writable: true,
+                configurable: true
+            });
+        }
+    </script>
+
 </body>
 
 </html>
