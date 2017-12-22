@@ -4,9 +4,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>viewer for t-Go</title>
 
-
-
-
 </head>
 
 <body>
@@ -17,10 +14,11 @@
     <script type="text/javascript" language="JavaScript" src="
         https://cdn.rawgit.com/IlyaKirillov/GoProject/master/WebBuilds/goboardmin.js"></script>
 
-    <script type="text/javascript" language="JavaScript" src="../dist/transform.min.js"></script>
+    <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/master/transformer/dist/transform.min.js"></script>
+
     <div>
 
-        Paste SGF for a t-Go game (e.g. from Little Golem) here and push the button to view it!
+        Paste SGF for a t-Go game (e.g. from Little Golem) in the box to the right, and then push the button to view it!
         <br>
         <input type="textarea" id="sgfIn" />
         <input type="button" id="goButton" value="go!" />
@@ -38,7 +36,7 @@
 
     </div>
 
-    <table id="panningTable" title="panning" style="float:right">
+    <table id="panningTable" title="panning">
         <tr>
             <td colspan="2" style="text-align: center">
                 <input type="button" id="btU" class="go-variants-panning" value="↑" />
@@ -87,7 +85,7 @@
 
                 if (!panningDirection) viewer.offset = [0, 0]
                 if (panningDirection) {
-                    let [right, up] = viewer.offset
+                    var right = viewer.offset[0], up = viewer.offset[1]
                     switch (panningDirection) {
 
                         case "U":
@@ -119,7 +117,11 @@
                 if (tSgf === undefined || tSgf === null) {
                     tSgf = document.getElementById("sgfIn").value
                 }
-                if (tSgf === '')
+                if (tSgf === '') {
+                    if (!viewer.emptySgfWarned) {
+                        alert(`No SGF was entered, so showing a simple sample instead.`)
+                        viewer.emptySgfWarned = true
+                    }
                     tSgf = `(;FF[4]
 CA[UTF-8]
 GM[1]
@@ -127,6 +129,7 @@ SZ[4]
 AP[maxiGos:6.45 (daoqi Ed)]
 ;B[ad];W[bd];B[bc];W[ac];B[bb]
 ;W[aa];B[ab];W[dd])`//sample1
+                }
                 var wraparound = Number(document.getElementById('wraparoundSelect').value)
                 var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound } })
 
@@ -136,26 +139,16 @@ AP[maxiGos:6.45 (daoqi Ed)]
                     document.oGameTree = oGameTree
 
                     GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, "playerDiv");
-                    // GoBoardApi.Set_StartNodeByReference(oGameTree,"R0JNUgEAAQAAADQA")//test
-                    // GoBoardApi.Set_StartNodeByReference(document.oGameTree,"R0JNUgIABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA__")
                     GoBoardApi.Load_Sgf(oGameTree, sgf);
-                    // GoBoardApi.Load_Sgf(oGameTree, sgf, undefined, "R0JNUgIABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA__");//works!
-                    //GoBoardApi.GoTo_NodeByMoveNumber(document.oGameTree,6) //also works!
-                    //GoBoardApi.GoTo_Node(document.oGameTree, "R0JNUgEAAwAAADE2NwA_")//KO
 
                     window.onresize = function () {
                         GoBoardApi.Update_Size(oGameTree);
                     };
 
-                    // ;[].forEach.call(document.querySelectorAll('.go-variants-panning'), function (el) {
-
-                    //     el.disabled = false
-                    // })
-
                     document.getElementById('panningTable').style.display = "inline"
                 }
                 else {
-                    let ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
+                    var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
                     GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
 
                     document.getElementById('offsetTr').innerHTML = `panned: [${viewer.offset[0]},${viewer.offset[1]}]`
@@ -173,22 +166,16 @@ AP[maxiGos:6.45 (daoqi Ed)]
                         var target = e.target || e.srcElement
                         showBoard(undefined, target.id.substring(2))
                     })
-                    // el.disabled = true
                 });
 
             document.getElementById('panningTable').style.display = "none"
 
-
-
-
-
         })
 
-
-
-
     </script>
-    <p>This viewer for t-Go works using the GoVariants library on top of Ilya Kirillov’s SGF viewer.</p>
+    <p>This viewer for t-Go works using the library
+        <a href="https://github.com/goplayerjuggler/goVariants/tree/master/transformer">
+        Go-Variants-Transformer</a> on top of Ilya Kirillov’s SGF viewer.</p>
 </body>
 
 </html>
