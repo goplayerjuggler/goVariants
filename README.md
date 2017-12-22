@@ -1,6 +1,6 @@
 # Go Variants
 
-Provides some software tools, mainly for Go variants – games inspired bythe game [Go](https://en.wikipedia.org/wiki/Go_(game)). So far only [Toroidal Go](https://senseis.xmp.net/?ToroidalGo) is handled. Support for other variants may be added later on.
+Provides some tools for Go variants – games inspired by the game [Go](https://en.wikipedia.org/wiki/Go_(game)). So far only [Toroidal Go](https://senseis.xmp.net/?ToroidalGo) is handled. Support for other variants may be added later on.
 
 ## Modules
 
