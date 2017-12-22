@@ -2,6 +2,13 @@
 
 Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game records or game commentaries, for a Go variant, into SGF that works in SGF viewers for standard Go.
 
+## Online samples
+
+* [viewer](http://goplayerjuggler.blogspot.com/2017/12/t-go-viewer-2-improved-version-that.html)
+* [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
+
+These blog posts were made by adapting the files `viewer.html` and `blogTemplate.html` in the folder `/samples`.
+
 ## Usage - simple scenario for reviewing a t-Go game
 
 This section just assumes basic knowledge of HTML and javascript.
