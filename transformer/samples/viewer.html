@@ -119,16 +119,10 @@
                 }
                 if (tSgf === '') {
                     if (!viewer.emptySgfWarned) {
-                        alert(`No SGF was entered, so showing a simple sample instead.`)
+                        alert('No SGF was entered, so showing a simple sample instead.')
                         viewer.emptySgfWarned = true
                     }
-                    tSgf = `(;FF[4]
-CA[UTF-8]
-GM[1]
-SZ[4]
-AP[maxiGos:6.45 (daoqi Ed)]
-;B[ad];W[bd];B[bc];W[ac];B[bb]
-;W[aa];B[ab];W[dd])`//sample1
+                    tSgf = '(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[maxiGos:6.45 (daoqi Ed)];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd])'//sample1
                 }
                 var wraparound = Number(document.getElementById('wraparoundSelect').value)
                 var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound } })
@@ -150,8 +144,7 @@ AP[maxiGos:6.45 (daoqi Ed)]
                 else {
                     var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
                     GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
-
-                    document.getElementById('offsetTr').innerHTML = `panned: [${viewer.offset[0]},${viewer.offset[1]}]`
+                    document.getElementById('offsetTr').innerHTML = 'panned: ['+ viewer.offset[0]+', '+viewer.offset[1]+']'
                 }
 
             }

@@ -3,10 +3,6 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>viewer for t-Go</title>
-
-
-
-
 </head>
 
 <body>
@@ -114,7 +110,7 @@
                             var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
                             GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
         
-                            document.getElementById('offsetTr').innerHTML = `panned: [${viewer.offset[0]},${viewer.offset[1]}]`
+                            document.getElementById('offsetTr').innerHTML = 'panned: ['+ viewer.offset[0]+', '+viewer.offset[1]+']'
                         }
         
                     }
