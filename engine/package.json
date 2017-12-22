@@ -1,0 +1,28 @@
+{
+  "name": "go-variants-engine",
+  "version": "0.0.0",
+  "description": "Go engine for standard Go (aka Baduk aka Weiqi) and toroidal Go (t-Go). It may in the future handle Go on other graphs that are locally like Go like cylinders, Klein surfaces, … ",
+  "main": "src/engine",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "go",
+    "weiqi",
+    "baduk",
+    "toroidal",
+    "go variants"
+  ],
+  "author": "goplayerjuggler",
+  "license": "0BSD",
+  "dependencies": {
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jasmine": "^2.4.2",
+    "gulp-jshint": "^2.0.4",
+    "jshint": "^2.9.5",
+    "jshint-stylish": "^2.2.1"
+  }
+}

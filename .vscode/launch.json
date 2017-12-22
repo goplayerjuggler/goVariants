@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "transformSamples",
+            "program": "${workspaceFolder}/transformer\\samples\\transformSamples.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Sample1",
+            "program": "${workspaceFolder}/transformer\\samples\\sample-1-4x4.js"
+        },{
+            "type": "node",
+            "request": "launch",
+            "name": "Sample2",
+            "program": "${workspaceFolder}/transformer\\samples\\sample-2-4x4.js"
+        },{
+            "type": "node",
+            "request": "launch",
+            "name": "Sample3",
+            "program": "${workspaceFolder}/transformer\\samples\\sample-3-game1873371.js"
+        },{
+            "type": "node",
+            "request": "launch",
+            "name": "Sample4",
+            "program": "${workspaceFolder}/transformer\\samples\\sample-4-5x5-vars.js"
+        },{
+            "type": "node",
+            "request": "launch",
+            "name": "Sample5",
+            "program": "${workspaceFolder}/transformer\\samples\\sample-5-full commented.js"
+        },
+
+        
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/transformer\\src\\transformer.js"
+        }
+    ]
+}

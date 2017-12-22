@@ -1,0 +1,41 @@
+{
+  "name": "go-variants-transformer",
+  "version": "0.0.0",
+  "description": "Tool for transforming SGF for a Go variant into SGF that works SGF viewers for standard Go.",
+  "main": "src/transformer",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "go",
+    "weiqi",
+    "baduk",
+    "toroidal",
+    "go variants",
+    "SGF"
+  ],
+  "author": "goplayerjuggler",
+  "license": "0BSD",
+  "dependencies": {
+    "go-variants-engine": "file:../engine",
+    "lodash": "^4.17.4",
+    "smartgame": "^0.1.5",
+    "smartgamer": "^0.1.5"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "browserify": "^14.5.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.0",
+    "gulp-jasmine": "^2.4.2",
+    "gulp-jshint": "^2.0.4",
+    "gulp-minify": "^2.1.0",
+    "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
+    "jshint": "^2.9.5",
+    "jshint-stylish": "^2.2.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}

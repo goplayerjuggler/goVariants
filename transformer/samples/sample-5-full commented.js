@@ -1,0 +1,82 @@
+﻿
+let sampleSgf = `(;
+    FF[4]
+    EV[ut.go19.1065.1.1]
+    PB[Malcolm Schonfield]
+    PW[Jos Dekker]
+    KM[4.5]
+    SZ[11]
+    SO[http://littlegolem.net/jsp/game/game.jsp?gid=1873384]
+    RE[B+R]
+    DT[2017-06-20,09-22]
+    CA[UTF-8]
+    GM[1]
+    AP[maxiGos:6.45 (daoqi Ed)]
+    ;B[ff];W[kf];B[ea];W[df]C[After three moves which are well spaced out from each other, White chooses to make an approaching move.
+    
+    Next there are lots of moves that seem to me to be playable for Black. I’ve indicated a few (A-M); there may well be others. There are so many possibilities in the fuseki, it’s hard to be sure of anything.]LB[ja:A][ia:B][ka:C][ik:D][jk:E][kk:F][ie:G][if:H][ig:I][fd:J][fh:K][de:L][dg:M]
+    (;B[ja]C[Here I decided to take a big point rather than consolidate the centre.];W[hf]C[Naturally, White pincered to weaken the central stone.];B[kh]C[I felt it was time to make an extension. I chose not to reinforce the central stone as I wanted to avoid playing passive moves.];W[ej]C[This move has two purposes: prevent Black from building a territorial framework, and put additional pressure on the central stone.];B[eh]C[Attacking White’s last move, and reinforcing the centre. This feels good for Black.]
+    ;W[fe]C[A tsuke (touching) move; it feels like a fight is about to start.]
+    (;B[ef]C[Perhaps this move makes things too complicated. See the variations.];W[ee]
+    (;B[de]C[This move is probably an overplay. See the variation.];W[ec]TR[ej][df]C[Now White just has two weak stones (Δ), whereas Black seems to be separated with all the marked stones (□) under pressure. This feels good for White.]SQ[ef][ff][de][ea][eh];B[ce]C[Reinforcing one side, and putting pressure on Δ.]TR[df];W[cf];B[bf]
+    ;W[bg];B[be];W[ch];B[ag];W[di]
+    ;B[bh];W[cg];B[hg];W[ig];B[hh]
+    ;W[ih];B[hi];W[af];B[dc]
+    (;W[gf]
+    (;B[gg]
+    (;W[ii]C[This move may be a mistake but I can’t be sure.];B[ge]C[I did some reading before playing this cut.];W[gd]C[This was a move I was prepared for. I had read out the next 9 moves…];B[he];W[if]
+    ;B[hd];W[gc];B[hc];W[gb];B[gk]
+    ;W[hb];B[jc]C[When I cut at 35 I had read up to here. I believed it was playable for Black, but the position is complex; I can’t read it out properly in any case.];W[hj]
+    (;B[gj]C[This seems to be a mistake. See the variation for the next move.]
+    (;W[gi];B[fg]C[I was lucky to get a chance to fix the shape here. Now it’s difficult for White.];W[fi];B[hk];W[ij]
+    ;B[ei];W[fj];B[dj]C[This cut works well because White’s stones are short of liberties.]TR[di][ch][cg][bg][cf][df]SQ[ej][fj][fi][gi]
+    (;W[cj];B[dk]
+    (;W[eg]C[White throws in to make a ko.];B[fk];W[dh];B[dg];W[ci]
+    ;B[ek];W[eg];B[fd]
+    (;W[fh]C[White wins the ko but it’s a success for Black.];B[ed]TR[gd][gc][gb][hb][ec]C[The Δ stones are all dead.];W[kk];B[je]C[White resigned here.
+    I give two possible follow-up variations.]
+    (;W[ba]C[If White comes in here, …];B[jf]C[Black can push through …];W[kg];B[jg];W[ah]
+    ;B[jh]C[I think White is behind on territory now.])
+    (;W[jf]C[If White connects…];B[ba]C[Black blocks.
+    I’ve made a vague attempt at counting and I got around 30 points for Black and around 27 for White, including komi. So I think Black wins here too. ]TR[dd][cd][cc][cb][bc][ac][kc][jb][ib][ha][ga][fa][eb][db][ec][fc][fb][gb][hb][gc][gd][fe][ee][bd][ic]SQ[ei][eh][dg][jh][jg][kg][kh][ji][ki][bi][ai][bh][ah][ag][aj][kj]))
+    (;W[ed]C[I was expecting White to answer the ko threat; I’m still not sure how that would turn out.];B[dg];W[eb]C[Black has to finish the ko now as there are no more threats and losing the ko means losing the game.];B[fh];W[db]TR[bf][be][ce][de][dc][bh][ag][kh]C[With the weak black Δ stones, there may be some hope for White, but White’s also divided in two so it may well be OK for Black.]))
+    (;W[dh]C[This also leads to a ko.];B[ek];W[eg];B[dg];W[ci]
+    ;B[fk];W[eg];B[fd]))
+    (;W[bi]C[If White plays here Black probably needs to play A or B; I’m not sure any more and I leave this as an exercise!
+    😊]LB[dk:A][ek:B]))
+    (;W[fg]C[The cut is very severe.]
+    (;B[eg]C[I don’t think connecting here works.];W[gi]
+    (;B[fh]C[If Black captures…];W[fi]TR[hi][hh][hg][gg][fh][eh][eg][ef][ff]C[I can’t see any way of saving all the Δ stones here.]
+    (;B[ci];W[cj])
+    (;B[ei];W[fj];B[dj];W[cj];B[dk]
+    ;W[gh]))
+    (;B[fi]C[Black gives up four stones in this variation; it’s probably too much.];W[gh];B[fj];W[ai]))
+    (;B[fi]C[I think Black has to give up the two stones.];W[eg]C[Now White’s stones are all connected; this is probably good for White.])))
+    (;B[fi]C[It looks like I should have played here. However I think the position is still good for White.];W[fk]C[This kosumi is hard to handle.]
+    (;B[hk];W[fa];B[ij];W[jj];B[ik]
+    ;W[ai]C[Now all of White’s groups have linked up, and there are no more weak groups, so it’s seems the game will be decided by the yose. I think it’s good for White.])
+    (;B[fa];W[hk];B[fj];W[ek];B[gj]
+    ;W[ga];B[fg]C[In this variation Black has survived at the price of being shut in. This may well be good for White.];W[gh]C[White can’t kill because of a shortage of liberties, but this move is still possible to gain strength on the outside.];B[dh];W[ci]C[This move could well be helpful in fighting later on.]
+    ;B[dg]C[Black lives with 5 points, and White gets sente to play outside; I prefer White.])))
+    (;W[gc]C[I expected this. It makes good shape and simplifies the game a little. White may be ahead now. It’s still unclear to me as the Δ stones are weak, but so is the black cutting stone (□).]TR[df][cf][bg][cg][ch][di][ej]SQ[ag]))
+    (;B[fi]C[I also considered this move.];W[gg];B[fh]C[This is a likely follow-up; the position is still unclear.]))
+    (;W[db]C[Before playing 31 I checked out this hane.];B[eb]C[Black can simply cut.];W[dd]C[The following variation shows it’s hard for White to get a good result.];B[cc];W[cd]
+    ;B[bd])
+    (;W[ge]C[This may be possible. The position is not clear to me.
+    For the moment, Black can’t cut at A.]LB[if:A];B[if]C[If Black cuts, it’s a ladder.];W[ie];B[jf];W[je]
+    ;B[jg];W[jh];B[kg];W[ki];B[ah]
+    ;W[bi]C[The ladder is good for White.]))
+    (;B[dg]TR[ej]C[This is a simpler and more natural way to play. The Δ stone is under pressure.
+    I don’t know why I didn’t play here. Maybe I wasn’t sure of capturing the Δ stone and didn’t want to stake the game on capturing it.];W[cf]C[If White extends…];B[bg]C[… maybe simply blocking here would be good enough.]))
+    (;B[ge]C[Maybe this hane would be simpler and more natural.]
+    (;W[gf]C[If White cuts…];B[ee]
+    (;W[fd];B[ef]LB[hd:A][hc:B]C[This seems to be OK for Black. The first few possible follow-ups to consider for White could be A and B.
+    The marked stone is weak but could still be useful for White.]TR[df])
+    (;W[fg]C[I don’t expect this to be good for White as the Black ponuki (after Black’s next move) seems too strong.];B[fd];W[eg]C[It’s an exchange, but I think it’s good for Black.]))
+    (;W[ee];B[gf]C[This is similar to the other variation and should also be OK for Black.]))
+    (;B[ee]C[An interesting question would be to compare this hane with the other one and to see if one seems better than the other. I have a feeling this hane is actually less good than the other one, but I won’t go into that analysis here.]))
+    (;B[fh]C[Actually I’m not sure this move is good.];W[dh]C[I wonder: the last two moves could be an exchange that’s good for White, as the X stone seems well placed in relation to the Δ stones.]TR[dh][df]MA[kf]))`
+
+var transform = require('../src/transform')
+let sgf = transform(sampleSgf)
+  console.log(sgf)

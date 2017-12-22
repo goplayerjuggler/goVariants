@@ -1,0 +1,113 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>viewer for t-Go</title>
+    <!-- <script type="text/javascript">eidogoConfig = {
+        theme:          "compact", // "standard" or "compact"
+        mode:           "play", // "play" or "view"
+        showComments:    true,
+        showPlayerInfo:  true,
+        showGameInfo:    true,
+        showTools:       true,
+        showOptions:     false,
+        showNavTree:     true,
+        markCurrent:     true,
+        markVariations:  true,
+        markNext:        false,
+        problemMode:     false,
+        enableShortcuts: true
+    };</script> -->
+    <!-- <link rel="stylesheet" href="../lib/eidogo.player.css" /> -->
+    <script type="text/javascript" src="https://cdn.rawgit.com/jkk/eidogo/master/player/js/all.compressed.js"></script>
+    <!-- <script type="text/javascript" src="../lib/eidogo.min.js"></script> -->
+    
+
+</head>
+
+<body>
+    <script type="text/javascript" language="JavaScript" src="../dist/transform.min.js"></script>
+    Paste SGF for a t-Go game (e.g. from Little Golem) here and push the button!
+    <input type="textarea" id="sgfIn" />
+    <input type="button" id="goButton" value="go!" />
+    <!--Hacked SGF for a viewer is here: <input type="textarea" id="sgfOut" />-->
+    <!--<div id="player" style="width: 700px"></div>-->
+    <!-- <div id="divId" style="position:relative; height: 95vh;width: 95vw" class="eidogo-player-auto"></div> -->
+
+    <script type="text/javascript">
+  
+
+        function showBoard(tSgf) {
+            if (tSgf == undefined) {
+                tSgf = document.getElementById("sgfIn").value
+            }
+            if (tSgf === undefined || tSgf === null || tSgf === '')
+                tSgf = `(;FF[4]
+CA[UTF-8]
+GM[1]
+SZ[4]
+AP[maxiGos:6.45 (daoqi Ed)]
+;B[ad];W[bd];B[bc];W[ac];B[bb]
+;W[aa];B[ab];W[dd])`//sample1
+
+            var sgf = goVariantsTransform(tSgf, { addComments: false })
+            var eidogoConfig = { 
+        theme:          "standard", // "standard" or "compact"
+        mode:           "play", // "play" or "view"
+        showComments:    true,
+        showPlayerInfo:  true,
+        showGameInfo:    true,
+        showTools:       true,
+        showOptions:     false,
+        showNavTree:     true,
+        markCurrent:     true,
+        markVariations:  true,
+        markNext:        false,
+        problemMode:     false,
+        enableShortcuts: true,
+        sgf,
+        container:"container"
+        // boardSize:"12"//tmp//Only three sizes supported for now b eidogo! 7 9 13 19
+    }
+    document.eidogoPlayer = new eidogo.Player(eidogoConfig)
+/*now can get current move! document.eidogoPlayer.moveNumber*/
+            // eidogo.loadSgf({sgf:sgf})
+            // eidogo.BoardRendererHtml.call(eidogo,{sgf:sgf})
+            
+            // var div = document.createElement('div');
+            // // div.id = 'box';
+            // div.innerHTML = sgf;
+            // // div.style = 'position:relative; height: 95vh;width: 95vw';
+            // div.className = 'eidogo-player-auto'
+            // document.body.appendChild(div);
+
+
+            //ar div = document.querySelector('#divId');
+            // var script =  document.createElement('script');
+            // script.type = 'text/javascript'
+            // // script.src = 'http://cdn.online-go.com/eidogo.min.js'//
+            // //script.src ='https://cdn.rawgit.com/jkk/eidogo/master/player/js/all.compressed.js'
+            // script.src ='../lib/eidogo.min.js'
+            // document.body.appendChild(script);
+            
+
+        }
+        var ranOnce = false
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            if (ranOnce) return
+            ranOnce = true
+            ;[].forEach.call(document.querySelectorAll('#goButton'), function (el) {
+                el.addEventListener('click', function () {
+                    showBoard()
+                })
+            })
+        })
+
+
+    </script>
+    <!-- <script type="text/javascript" src="https://cdn.rawgit.com/jkk/eidogo/master/player/js/all.compressed.js"></script> -->
+    <div id="container"></div>
+</body>
+
+</html>
