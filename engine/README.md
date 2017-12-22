@@ -5,7 +5,7 @@ At present the primary function of the module is to handle the mechanics of maki
 
 
 ## Usage
-This section is for those who are familiar or are getting familiar with node.js and related tools. This module is built using node.js. Working on a system with a recent version of node / npm is probably necessary.
+This section is for those who are familiar, or are getting familiar, with node.js and related tools. This module is built using node.js. Working on a system with a recent version of node / npm is probably necessary.
 ## Installation 
 Copy or clone (via git) the source files for this module to a local folder. Then, from within that folder:
 ```
