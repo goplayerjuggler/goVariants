@@ -302,7 +302,8 @@ module.exports = function (options
 			}
 			else {
 				// run move through tGo and update game accordingly
-				var
+				try {
+					var
 					coords = wrappedGame.translateCoordinates(move)
 					, playResult = tGo.play(isBlack ? 'b' : 'w', coords)
 					, projectedCoords = $.projectOnFlat(coords)
@@ -313,12 +314,21 @@ module.exports = function (options
 							.map($.projectOnFlat)
 							.flatten(true)
 							.map($.coords2String)
-							.value()
+							.value()	
+				} catch (error) {
+					if (error.message==='point is not empty') {
+					 /*ignore this - it happens with some sgf from littleGolem. Todo: look into scoring the position here. */  
+					 goThroughTree();
+					 continue;
+					}
+					else throw(error)
+				}
+				
 
 				//alter the node 
 				if (options.addPasses)
 					node[isBlack ? 'B' : 'W'] = ''
-				else delete node[isBlack ? 'B' : 'W']//todo conditional on options.addPasses
+				else delete node[isBlack ? 'B' : 'W']
 				// node[isBlack ? 'B' : 'W'] = ''
 				node[isBlack ? 'AB' : 'AW'] = toAdd
 				node.CR = toAdd
