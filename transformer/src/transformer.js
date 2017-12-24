@@ -290,6 +290,7 @@ module.exports = function (options
 			if (isPass) {
 				delete node[isBlack ? 'B' : 'W']
 				comment(isPass, isBlack)
+				node[isBlack ? 'AB' : 'AW'] = []
 				// if (passes === 2) {
 				// 	//wrappedGame.game.nodes.splice(i+1)//get rid of nodes afterwards -- may not work with variations! todo
 				// 	//todo:score!
@@ -318,8 +319,8 @@ module.exports = function (options
 				} catch (error) {
 					if (error.message==='point is not empty') {
 					 /*ignore this - it happens with some sgf from littleGolem. Todo: look into scoring the position here. */  
-					 goThroughTree();
-					 continue;
+					 toAdd = []
+					 toRemove =[]
 					}
 					else throw(error)
 				}
@@ -331,7 +332,8 @@ module.exports = function (options
 				else delete node[isBlack ? 'B' : 'W']
 				// node[isBlack ? 'B' : 'W'] = ''
 				node[isBlack ? 'AB' : 'AW'] = toAdd
-				node.CR = toAdd
+				if (toAdd.length >0)
+					node.CR = toAdd
 				if (toRemove.length > 0)
 					node.AE = toRemove
 				comment(isPass, isBlack)
