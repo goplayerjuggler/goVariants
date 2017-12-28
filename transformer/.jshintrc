@@ -1,10 +1,11 @@
-{"undef":true
-,"unused":true
-,"eqeqeq":true
-,"latedef":true
-,"strict":true
-,"asi":true
-
-,"laxcomma":true
-,"laxbreak":true
+{
+    "undef": true,
+    "unused": true,
+    "eqeqeq": true,
+    "latedef": true,
+    "strict": true,
+    "asi": true,
+    "laxcomma": true,
+    "laxbreak": true,
+    "esversion": 6
 }

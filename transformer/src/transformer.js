@@ -1,4 +1,6 @@
-﻿/* globals module: false, require: false */
+﻿/* globals module: false, require: false
+
+*/
 module.exports = function (options
 ) {
 	'use strict';
@@ -44,8 +46,7 @@ module.exports = function (options
 			smallest such x < 0 is ceil(-(n+a)/m)
 		 xm ≤ n + m - 1 -a
 			largest such x is floor((n + m - 1 -a) / m)
-		
-		
+				
 			var m = options.boardDimensions[isVertical?1:0]
 			var n = options.projectionSettings.wraparound
 			var r = (a+n-m >= 0) ? [a+n-m, a + n] : [a + n]
@@ -130,12 +131,13 @@ module.exports = function (options
 		return coordinateLabels(coords[0]) + coordinateLabels(coords[1])
 	}
 
-	$.inverseTransform = function (
-		sgf
-		, smartgame
-		, smartgamer) {
+	// $.inverseTransform = function (
+	// 	sgf //eg 11x11 sgf from LittleGolem
 
-	}
+	// 	, smartgame
+	// 	, smartgamer) {
+		
+	// 	}
 
 	$.transform = function (
 		tGoSgf //eg 11x11 sgf from LittleGolem
@@ -201,7 +203,8 @@ module.exports = function (options
 
 			node.LB = $.markersForWraparound.concat(labels)
 			if (node.LB.length === 0)
-				delete node['LB']
+				// delete node['LB']
+				delete node.LB
 		}
 		
 		setLabels()
@@ -302,20 +305,12 @@ module.exports = function (options
 				goThroughTree();
 			}
 			else {
+				let coords = null, toAdd =  null, toRemove = null
 				// run move through tGo and update game accordingly
 				try {
-					var
+					
 					coords = wrappedGame.translateCoordinates(move)
-					, playResult = tGo.play(isBlack ? 'b' : 'w', coords)
-					, projectedCoords = $.projectOnFlat(coords)
-					, toAdd = _.map(projectedCoords, $.coords2String)
-					, toRemove =
-						_.chain(playResult.removed)
-							.flatten(true)
-							.map($.projectOnFlat)
-							.flatten(true)
-							.map($.coords2String)
-							.value()	
+					
 				} catch (error) {
 					if (error.message==='point is not empty') {
 					 /*ignore this - it happens with some sgf from littleGolem. Todo: look into scoring the position here. */  
@@ -324,7 +319,16 @@ module.exports = function (options
 					}
 					else throw(error)
 				}
-				
+				let playResult = tGo.play(isBlack ? 'b' : 'w', coords)
+					, projectedCoords = $.projectOnFlat(coords)
+				toAdd = _.map(projectedCoords, $.coords2String)
+				toRemove =
+					_.chain(playResult.removed)
+						.flatten(true)
+						.map($.projectOnFlat)
+						.flatten(true)
+						.map($.coords2String)
+						.value()
 
 				//alter the node 
 				if (options.addPasses)

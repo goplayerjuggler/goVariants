@@ -1,3 +1,6 @@
+/* globals module: false, require: false
+
+*/
 
 /**
  * 
@@ -7,7 +10,7 @@
  * @param {boolean} [options.addMarkersForWraparound = true] When flagged, the start of the “wraparound” area is shown in the viewer. This is done by adding labels at the edge of the wraparound, to each node in the game. 
  * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
  * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
- * @param {object=} options.projectionSettings Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
+ * @param {object} [options.projectionSettings=] Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
  * @param {number} [options.projectionSettings.wraparound = 4]  Number of lines to add for the “wraparound”.
  * @param {array} [options.projectionSettings.offset = [0,0]]  Translation to apply to all moves.
  * @param {boolean} [options.transformToString=true] When set to false, the output is an object (an instance of a Smartgame).
@@ -23,7 +26,7 @@ options.projectionSettings.normalize2ndMove
 
 */
 module.exports = (variantSgf, options) => {
-  
+  'use strict' 
   let transformer = require('./transformer')
 	,  smartgame = require('smartgame')
 	,  smartgamer = require('smartgamer')
