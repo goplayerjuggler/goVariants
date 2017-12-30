@@ -91,7 +91,7 @@
 
             function showBoard(tSgf, panningDirection, moveReference) {
 
-                if (!panningDirection) viewer.offset = [0, 0]
+                if (!panningDirection && !moveReference) viewer.offset = [0, 0]
                 if (panningDirection) {
                     var right = viewer.offset[0], up = viewer.offset[1]
                     switch (panningDirection) {
