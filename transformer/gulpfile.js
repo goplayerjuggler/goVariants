@@ -57,47 +57,28 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var uglify = require('gulp-uglify');
-// var sourcemaps = require('gulp-sourcemaps');
+var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 // var babelify = require("babelify");
 var babel = require('gulp-babel');
 
+function bundler (fileName) {
+  return () => {
 
-gulp.task('javascript', function () {
-  // set up the browserify instance on a task basis
-  // var b = browserify({
-  //   entries: 'src/transform.js',
-  //   debug: true
-  // });
-  var b = browserify('src/transform.js', { standalone: 'goVariantsTransform' });
+  var b = browserify(`src/${fileName}.js`, { standalone: `go_variants_${fileName}` });
   return b
-    // .transform('babelify', {
-    //   // presets: ["env"], 
-    //   "presets": ["es2015"],
-    // "plugins":["transform-object-rest-spread"]})
-    // .transform('gulp-babel')
     .bundle()
-    .pipe(source('transform.min.js'))
+    .pipe(source(`${fileName}.min.js`))
     .pipe(buffer())
-    // .pipe(sourcemaps.init({loadMaps: true}))
-    // Add transformation tasks to the pipeline here.
+    .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(babel())
 
     .pipe(uglify())
     .on('error', gutil.log)
-    // .pipe(sourcemaps.write('./dist/js/'))
+    .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('./dist'));
-    // .pipe(babel())
+  }
+}
 
-    // .pipe(uglify())
-    // .pipe(gulp.dest('./dist'));
-});
-
-// var babel = require('gulp-babel');
-// gulp.task('es6', () => {
-//   gulp.src('./dist/js/app.js')
-//     .pipe(babel())
-
-//     .pipe(uglify())
-//     .pipe(gulp.dest('./dist/dist_es5/app.js'));
-// });
+gulp.task('bundle1', bundler('transform'));
+gulp.task('bundle2', bundler('transformer'));

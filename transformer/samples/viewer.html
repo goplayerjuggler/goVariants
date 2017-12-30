@@ -14,15 +14,20 @@
     <script type="text/javascript" language="JavaScript" src="
         https://cdn.rawgit.com/IlyaKirillov/GoProject/master/WebBuilds/goboardmin.js"></script>
 
-    <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/ddc9089692b7c129b33ec1e619edf848643f5cbe/transformer/dist/transform.min.js"></script>
+    <!-- <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/ddc9089692b7c129b33ec1e619edf848643f5cbe/transformer/dist/transform.min.js"></script> -->
+
+    <script type="text/javascript" language="JavaScript" src="../dist/transformer.min.js"></script>
+    <!-- <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/transformer/dist/transformer.min.js"></script> -->
 
     <div>
 
-            Paste SGF for a game of toroidal Go (e.g. from Little Golem) in the box below, and then push the button to view the game!
-                <br>
-        <input type="textarea" id="sgfIn" />
-        <input type="button" id="goButton" value="go!" />
-        <select id="wraparoundSelect">
+        Paste SGF for a game of toroidal Go (e.g. from Little Golem) in the box below, and then push the button to view the game!
+        <br />
+        <label for="sgfIn">T-Go SGF:</label> <input type="text" id="sgfIn" />
+        <br />
+        <input type="button" id="goButton" value="show board (from t-Go SGF)" />
+        <input type="button" id="updateButton" style="display: none" value="update all (t-Go SGF and board) (from board)" />
+        <label for="wraparoundSelect">number of wraparound lines to add:</label> <select id="wraparoundSelect">
             <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -32,11 +37,11 @@
             <option value="6">6</option>
             <option value="7">7</option>
 
-        </select> (number of wraparound lines to add)
+        </select> <label for="sgfIn">add comments:</label> <input type="checkbox" id="addComments" checked>
 
     </div>
 
-    <table id="panningTable" title="panning" style="display:none">
+    <table id="viewerControls" title="panning" style="display:none">
         <tr>
             <td colspan="2" style="text-align: center">
                 <input type="button" id="btU" class="go-variants-panning" value="↑" />
@@ -84,7 +89,7 @@
             viewer.ran = true//just run this function once
 
 
-            function showBoard(tSgf, panningDirection) {
+            function showBoard(tSgf, panningDirection, moveReference) {
 
                 if (!panningDirection) viewer.offset = [0, 0]
                 if (panningDirection) {
@@ -126,10 +131,14 @@
                         viewer.emptySgfWarned = true
                     }
                     tSgf = '(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[maxiGos:6.45 (daoqi Ed)];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd])'//sample1
+                    document.getElementById("sgfIn").value = tSgf
                 }
                 var wraparound = Number(document.getElementById('wraparoundSelect').value)
+                , addComments = document.getElementById('addComments').checked
                 try {
-                    var sgf = goVariantsTransform(tSgf, { addComments: false, projectionSettings: { offset: viewer.offset, wraparound: wraparound } })
+                    let transformer = go_variants_transformer({ addComments: addComments, projectionSettings: { offset: viewer.offset, wraparound: wraparound } })
+                    var sgf = transformer.transform(tSgf)
+                    document.viewer.transformer = transformer
                 }
                 catch (e) {
                     alert('an error occurred. Maybe you need to try using a more modern browser like a recent version of Firefox or Chrome.')
@@ -137,28 +146,46 @@
                 if (!panningDirection) {
 
                     var oGameTree = GoBoardApi.Create_GameTree()
-                    document.oGameTree = oGameTree
+                    document.viewer.oGameTree = oGameTree
 
                     GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, "playerDiv");
-                    GoBoardApi.Load_Sgf(oGameTree, sgf);
+                    if (moveReference !== undefined)
+                        GoBoardApi.Load_Sgf(document.viewer.oGameTree, sgf, undefined, moveReference);
+                    else
+                        GoBoardApi.Load_Sgf(oGameTree, sgf);
 
                     window.onresize = function () {
                         GoBoardApi.Update_Size(oGameTree);
                     };
 
-                    document.getElementById('panningTable').style.display = "inline"
+                    document.getElementById('viewerControls').style.display = "inline"
+                    document.getElementById('updateButton').style.display = "inline"
                 }
                 else {
-                    var ref = GoBoardApi.Get_MoveReference(document.oGameTree, false)
-                    GoBoardApi.Load_Sgf(document.oGameTree, sgf, undefined, ref);
+                    var ref = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
+                    GoBoardApi.Load_Sgf(document.viewer.oGameTree, sgf, undefined, ref);
                     document.getElementById('offsetTr').innerHTML = 'panned: [' + viewer.offset[0] + ', ' + viewer.offset[1] + ']'
                 }
 
             }
 
+            function updateVariantSgf() {
+                var sgf = GoBoardApi.Save_Sgf(document.viewer.oGameTree)
+                var ref = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
+                // var options = document.viewer.transformer.options
+                // options.boardDimensions = options.boardDimensions.map((x) => x - 2 * options.projectionSettings.wraparound) 
+                var tSgf = document.viewer.transformer.inverseTransform(sgf)
+                document.getElementById("sgfIn").value = tSgf
+                showBoard(tSgf, undefined, ref)
+            }
+
 
             document.getElementById('goButton').addEventListener('click', function () {
                 showBoard()
+            })
+
+            document.getElementById('updateButton').addEventListener('click', function () {
+                updateVariantSgf()
             })
 
                 ;[].forEach.call(document.querySelectorAll('.go-variants-panning'), function (el) {
@@ -168,7 +195,7 @@
                     })
                 });
 
-            document.getElementById('panningTable').style.display = "none"
+            document.getElementById('viewerControls').style.display = "none"
 
         })
         //polyfill

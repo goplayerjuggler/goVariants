@@ -50,12 +50,75 @@ describe("transformer", function () {
 			expect(default_tGo2normal.projectOnFlat([0, 0]))
 				.toEqual([[4, 4], [4, 15], [15, 4], [15, 15]])
 		})
-		//it("takes a move and position on a toroidal board and projects it to a flat board", function() {
-		// //assume projection 11x11 to 19x19
-		// // expect(go.projectOnFlat({move:['b',[0,0]], blackStones: [[0,0]], whiteStones: [] }))
-		// // .toEqual({move:['b',[[4,4],[4,15],[15,4],15,15]], blackStones: [[[4,4],[4,15],[15,4],15,15]]], whiteStones: [] })
-		// })
 	})
+
+
+	describe("inverseProjectOnFlat", function () {
+		// beforeEach(function () {					
+		// go.board.empty()	go.play('b',[0,0])
+		// go.play('w',[0,1])
+		// go.play('w',[1,0])
+		// });
+		it("is an inverse of projectOnFlat", function () {
+			//default: assume projection 11x11 to 19x19
+			var transformerInstance = transformer()
+			expect(transformerInstance.inverseProjectOnFlat([[4, 4], [4, 15], [15, 4], [15, 15]]))
+				.toEqual([0, 0])
+
+			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([0, 0])))
+				.toEqual([0, 0])
+			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([1, 2])))
+				.toEqual([1, 2])
+			transformerInstance =  transformer({
+				boardDimensions: [5, 5],
+				projectionSettings: { wraparound: 5, offset:[1,2] }
+
+			})
+			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([0, 0])))
+			.toEqual([0, 0])
+		expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([1, 2])))
+			.toEqual([1, 2])
+		})
+	})
+
+	// describe("inverseProjectOnLine", function () {
+
+	// 	it("works with default settings", function () {
+	// 		var default_tGo2normal = transformer()
+	// 		//projection 11x11 to 19x19
+	// 		expect(default_tGo2normal.inverseProjectOnLine([9]))
+	// 			.toEqual(5)
+	// 		expect(default_tGo2normal.inverseProjectOnLine([4, 15]))
+	// 			.toEqual(0)
+	// 	})
+
+	// 	it("works with custom settings", function () {
+	// 		var custom_tGo2Normal = transformer({
+	// 			boardDimensions: [5, 5],
+	// 			projectionSettings: { wraparound: 5 }
+	// 			/*
+	// 0 1 2 3 4 | 5 6 7 8 9 | 10 11 12 13 14 			
+	// 			*/
+	// 		})
+	// 		expect(custom_tGo2Normal.inverseProjectOnLine([0, 5, 10]))
+	// 			.toEqual(0)
+	// 		expect(custom_tGo2Normal.inverseProjectOnLine([2, 7, 12]))
+	// 			.toEqual(2)
+	// 	})
+	// 	it("works with custom settings #2", function () {
+	// 		var custom_tGo2Normal = transformer({
+	// 			boardDimensions: [5, 5],
+	// 			projectionSettings: { wraparound: 11 }
+	// 			/*
+	// 0 | 1 2 3 4 5 | 6 7 8 9 10 | 11 12 13 14 15 16 | 17 .. 27			
+	// 			*/
+	// 		})
+	// 		expect(custom_tGo2Normal.inverseProjectOnLine([1, 6, 11, 16, 21, 26]))
+	// 			.toEqual(0)
+	// 		expect(custom_tGo2Normal.inverseProjectOnLine([3, 8, 13, 18, 23]))
+	// 			.toEqual(2)
+	// 	})
+	// })
 	describe("projectOnLine", function () {
 
 		it("works with default settings", function () {
@@ -79,6 +142,17 @@ describe("transformer", function () {
 			expect(custom_tGo2Normal.projectOnLine(2))
 				.toEqual([2, 7, 12])
 		})
+		it("works with custom settings - offset is ignored!", function () {
+			var custom_tGo2Normal = transformer({
+				boardDimensions: [5, 5],
+				projectionSettings: { wraparound: 5, offset: [1, 2] }
+				/*
+	0 1 2 3 4 | 5 6 7 8 9 | 10 11 12 13 14 			
+				*/
+			})
+			expect(custom_tGo2Normal.projectOnLine(0))
+				.toEqual([0, 5, 10])
+		})
 		it("works with custom settings #2", function () {
 			var custom_tGo2Normal = transformer({
 				boardDimensions: [5, 5],
@@ -92,6 +166,7 @@ describe("transformer", function () {
 			expect(custom_tGo2Normal.projectOnLine(2))
 				.toEqual([3, 8, 13, 18, 23])
 		})
+
 	})
 	describe("transform", () => {
 		let transform = require('../src/transform')
@@ -136,7 +211,7 @@ AP[maxiGos:6.45 (daoqi Ed)]
 					// console.log(sgfData)
 
 					fs.writeFile(transformedFile, transform(sgfData), (err) => {
-						if (err !==null)
+						if (err !== null)
 							console.log(err.message)
 
 					})
