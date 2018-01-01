@@ -49,6 +49,8 @@ describe("transformer", function () {
 			var default_tGo2normal = transformer()
 			expect(default_tGo2normal.projectOnFlat([0, 0]))
 				.toEqual([[4, 4], [4, 15], [15, 4], [15, 15]])
+			expect(default_tGo2normal.projectOnFlat([0, 1]))
+				.toEqual([[4, 5], [4, 16], [15, 5], [15, 16]])
 		})
 	})
 
@@ -69,15 +71,22 @@ describe("transformer", function () {
 				.toEqual([0, 0])
 			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([1, 2])))
 				.toEqual([1, 2])
-			transformerInstance =  transformer({
+
+			//mutiple=true
+			expect(transformerInstance.inverseProjectOnFlat([
+				[4, 4], [4, 15], [15, 4], [15, 15],
+				[4, 5], [4, 16], [15, 5], [15, 16]]))
+				.toEqual([0, 0], [0, 1])
+
+			transformerInstance = transformer({
 				boardDimensions: [5, 5],
-				projectionSettings: { wraparound: 5, offset:[1,2] }
+				projectionSettings: { wraparound: 5, offset: [1, 2] }
 
 			})
 			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([0, 0])))
-			.toEqual([0, 0])
-		expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([1, 2])))
-			.toEqual([1, 2])
+				.toEqual([0, 0])
+			expect(transformerInstance.inverseProjectOnFlat(transformerInstance.projectOnFlat([1, 2])))
+				.toEqual([1, 2])
 		})
 	})
 
@@ -189,36 +198,29 @@ AP[maxiGos:6.45 (daoqi Ed)]
 
 
 		})
-		it("transforms all 5 samples successfully", () => {
+		it("transforms all 6 samples successfully", () => {
 
-			let path = require('path');
-			let fs = require('fs');
-			//let appDir = path.dirname(require.main.filename);
-			let appDir = process.cwd();
-			// expect(appDir).toEqual(`C:				Users\\schonfield_m\\LocalData\\personal\\dev\\goVariants\\transformer`)
-			let transform = require('../src/transform')
-			for (let i = 1; i < 6; i++) {
+			let path = require('path')
+				, fs = require('fs')
+				, appDir = process.cwd()
+				, transform = require('../src/transform')
+				, writeTransformedSgfToFiles = false
 
-				// let filePath = `${appDir}\\sample-${i}.sgf`
+			for (let i = 1; i < 7; i++) {
+
 				let filePath = path.join(appDir, 'samples', `sample-${i}.sgf`)
-				let transformedFile = path.join(appDir, 'samples', `.sample-${i}_transformed.sgf`)
-				// expect(filePath).toEqual(`C:				Users\\schonfield_m\\LocalData\\personal\\dev\\goVariants\\transformer\\samples\\sample-${i}.sgf`)
-				// fs.unlink(transformedFile)
-				// console.log(filePath)
+				if (writeTransformedSgfToFiles)
+					var transformedFile = path.join(appDir, 'samples', `.sample-${i}_transformed.sgf`)
 				fs.readFile(filePath, 'utf-8', function (err, sgfData) {
-					// if(err)
-					//     console.log(err.message)
-					// console.log(sgfData)
-
-					fs.writeFile(transformedFile, transform(sgfData), (err) => {
-						if (err !== null)
-							console.log(err.message)
-
-					})
+					if (writeTransformedSgfToFiles) {
+						fs.writeFile(transformedFile, transform(sgfData), (err) => {
+							if (err !== null)
+								console.log(err.message)
+						})
+					}
+					else
+						transform(sgfData)
 				});
-				// var data = fs.readFileSync(filePath);
-				// console.log(data)
-				// expect(1).toEqual(1)
 			}
 
 		})

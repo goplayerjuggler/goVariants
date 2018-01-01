@@ -4,7 +4,10 @@
 module.exports = function (options
 ) {
 	'use strict';
-	let _ = require('lodash/core')
+	let //_ = require('lodash/core')
+		_flatten = require('lodash/flatten'),
+		_uniqBy = require('lodash/uniqBy')
+		, modulo = (x, y) => (x % y + y) % y
 	options = options || {}
 
 	if (options.addPasses === undefined)
@@ -97,21 +100,27 @@ module.exports = function (options
 	// }
 
 
-	$.inverseProjectOnFlat = function (r) {
-		// console.log(r)
-		for (let i = 0; i < r.length; i++) {
-			const s = r[i]
-			if (s[0] < wraparound + options.projectionSettings.offset[0]
-				|| s[0] >= wraparound + options.boardDimensions[0] + options.projectionSettings.offset[0] //not really needed
-				|| s[1] < wraparound + options.projectionSettings.offset[1]
-				|| s[1] >= wraparound + options.boardDimensions[1] + options.projectionSettings.offset[1]//not really needed
-			) continue
-			return [s[0] - wraparound - options.projectionSettings.offset[0]
-				, s[1] - wraparound - options.projectionSettings.offset[1]]
-		}
+	/**
+	 * This is the inverse function to the function “projectOnFlat” – at least it is when “multiple” is false.
+	 * @param {Array} points The point or array of points projected onto the grid.
+	 * @param {Boolean=false} multiple Whether the argument “points” is the image of a single point (“multiple=false”) or of multiple points.
+	 * @returns {Array} When the flag “multiple” is flagged, returns an array of points; otherwise returns a single point (i.e. an array of two integers).
+	 */
+	function inverseProjectOnFlat(points, multiple) {
+		if (!Array.isArray(points[0])) points = [points]
+		if (!multiple)
+			return [modulo(points[0][0] - options.projectionSettings.offset[0] - wraparound, options.boardDimensions[0])
+				, modulo(points[0][1] - options.projectionSettings.offset[1] - wraparound, options.boardDimensions[1])]
+		return _uniqBy(points.map(x => inverseProjectOnFlat([x])), (x) => `${x[0]}_${x[1]}`)
 	}
+	$.inverseProjectOnFlat = inverseProjectOnFlat
 
-	$.projectOnFlat = function (p) {
+	/**
+	 * Projects a point on the t-Go board to the array of points on the standard grid/board.
+	 * @param {Array} p The point in the t-Go board to be projected on to the grid.
+	 * @returns {Array} 
+	 */
+	function projectOnFlat(p) {
 		const a = $.projectOnLine(p[0] + options.projectionSettings.offset[0])
 			, b = $.projectOnLine(p[1] + options.projectionSettings.offset[1])
 			, r = []
@@ -120,6 +129,7 @@ module.exports = function (options
 				r.push([a[i], b[j]])
 		return r
 	}
+	$.projectOnFlat = projectOnFlat
 
 	let setUpMarkers = () => {
 		$.markersForWraparound = []
@@ -230,14 +240,15 @@ module.exports = function (options
 		}
 
 		let node = wrappedGame.first().node()
-			, passes = 0
 			, pending = []
 			, currentPath = { m: 0 }
-			, cleanerRegEx = /^[a-zA-Z :0-9\-\(\r\n]+GoVariantsTransformer\)--(\r\n)?/
+			, cleanerRegEx = /^[a-zA-Z :0-9\-\(\r\n]+GoVariantsTransformer\)--[\r\n]*/
 			, cleanComments = () => {
 				if (node.C !== undefined) {
 					node.C = node.C.replace(cleanerRegEx, '')
 				}
+				if (node.C === '')
+					delete node.C
 			}
 			, cleanLabels = () => {
 
@@ -248,18 +259,18 @@ module.exports = function (options
 						labels = [labels]
 					labels = labels.filter(i => !$.markersForWraparound.includes(i))
 					/* jshint loopfunc: true */
-					let labels2 = labels
-						.map(function (x) { return x.split(':', 2) })//assume the label doesn’t contain “:”
-						.map(function (x) { return [translateCoordinates(x[0]), x[1]] })
-						.map(function (x) { return [$.inverseProjectOnFlat(x[0]), x[1]] })
+					labels =
+						_uniqBy(
+							labels
+								.map(function (x) { return x.split(':', 2) })//assume the label doesn’t contain “:”
+								.map((x) => [$.coords2String($.inverseProjectOnFlat(translateCoordinates(x[0]))), x[1]])
+							, (x) => x[0])
+							.map((x) => `${x[0]}:${x[1]}`)
 
-					labels = []
-					for (let i = 0; i < labels2.length; i++)
-						labels = labels.concat(
-							labels2[i][0].map(function (x) {
-								return $.coords2String(x) + ":" + labels2[i][1]
-							})
-						)
+
+					// labels = []
+					// for (let i = 0; i < labels2.length; i++)
+					// 	labels = labels.concat(labels2)
 				}
 
 				node.LB = labels
@@ -269,6 +280,7 @@ module.exports = function (options
 
 		cleanLabels()
 		node.SZ = options.boardDimensions[0]
+		node.AP = "go-variants-transformer"
 
 		let state = { wrappedGame, node, pending, currentPath }
 
@@ -301,27 +313,26 @@ module.exports = function (options
 			delete node.AE
 
 			node[isBlack ? 'B' : 'W'] = coords
-				;/*note this semicolon is needed! (TBC) */
-			[
-				//'CR',todo: add if not marking the move
-				'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
-					// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
-					if (node[sgfProperty] === undefined) return
-					let points = []
-					if (Array.isArray(node[sgfProperty])) {
-						points = node[sgfProperty]
-					}
-					else {
-						points = [node[sgfProperty]]
-					}
-					points = _.chain(points)
-						.map(translateCoordinates)
-						.map($.inverseProjectOnFlat)
-						.flatten(true)
-						.map($.coords2String)
-						.value()
-					node[sgfProperty] = points
-				})
+
+				;/*note: this next semicolon is needed! */[
+					//'CR',todo: add if not marking the move
+					'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
+						// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
+						if (node[sgfProperty] === undefined) return
+						let points = []
+						if (Array.isArray(node[sgfProperty])) {
+							points = node[sgfProperty]
+						}
+						else {
+							points = [node[sgfProperty]]
+						}
+						points =
+							$.inverseProjectOnFlat(
+								points.map(translateCoordinates), true
+							)
+								.map($.coords2String)
+						node[sgfProperty] = points
+					})
 			// move to next node
 			node = goThroughTree(state)
 		}
@@ -387,15 +398,15 @@ module.exports = function (options
 					labels = [labels]
 
 				/* jshint loopfunc: true */
-				let labels2 = _.chain(labels)
+				let labels2 = labels//_.chain(labels)
 					.map(function (x) { return x.split(':', 2) })//assume the label doesn’t contain “:”
 					.map(function (x) { return [translateCoordinates(x[0]), x[1]] })
 					.map(function (x) { return [$.projectOnFlat(x[0]), x[1]] })
-					.value()
+				// .value()
 				labels = []
 				for (let i = 0; i < labels2.length; i++)
 					labels = labels.concat(
-						_.map(labels2[i][0], function (x) {
+						labels2[i][0].map(function (x) {
 							return $.coords2String(x) + ":" + labels2[i][1]
 						})
 					)
@@ -473,14 +484,18 @@ module.exports = function (options
 						throw (error)
 				}
 				const projectedCoords = $.projectOnFlat(coords)
-				let toAdd = playResult === null ? [] : _.map(projectedCoords, $.coords2String)
+				let toAdd = playResult === null ? [] : projectedCoords.map($.coords2String)
 					, toRemove = playResult === null ? [] :
-						_.chain(playResult.removed)
-							.flatten(true)
-							.map($.projectOnFlat)
-							.flatten(true)
+						// _.chain(playResult.removed)
+						// 	.flatten(true)
+						// 	.map($.projectOnFlat)
+						// 	.flatten(true)
+						// 	.map($.coords2String)
+						// 	.value()
+						_flatten(
+							_flatten(playResult.removed)
+								.map($.projectOnFlat))
 							.map($.coords2String)
-							.value()
 
 				//alter the node 
 				if (options.addPasses)
@@ -502,7 +517,7 @@ module.exports = function (options
 					LN				
 					*/
 
-					;/*note this semicolon is needed! (TBC) */
+					;/*note this semicolon is needed! */
 				[
 					//'CR',todo: add if not marking the move
 					'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
@@ -515,12 +530,19 @@ module.exports = function (options
 						else {
 							points = [node[sgfProperty]]
 						}
-						points = _.chain(points)
-							.map(translateCoordinates)
-							.map($.projectOnFlat)
-							.flatten(true)
-							.map($.coords2String)
-							.value()
+						points =
+							// _.chain(points)
+							// 	.map(translateCoordinates)
+							// 	.map($.projectOnFlat)
+							// 	.flatten(true)
+							// 	.map($.coords2String)
+							// 	.value()
+							_flatten(
+								points
+									.map(translateCoordinates)
+									.map($.projectOnFlat)
+							)
+								.map($.coords2String)
 						node[sgfProperty] = points
 					})
 				node.MN = currentPath.m

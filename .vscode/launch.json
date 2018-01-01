@@ -7,6 +7,12 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "scrap",
+            "program": "${workspaceFolder}/transformer\\debugScrap.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "transformSamples",
             "program": "${workspaceFolder}/transformer\\samples\\transformSamples.js"
         },
