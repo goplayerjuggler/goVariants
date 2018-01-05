@@ -7,12 +7,12 @@
 </head>
 
 <body>
-    <!-- 
-        <script type="text/javascript" language="JavaScript" src="../lib/goboardmin.js"></script>
-        <script type="text/javascript" language="JavaScript" src="../dist/transform.min.js"></script> -->
 
-    <script type="text/javascript" language="JavaScript" src="
-        https://cdn.rawgit.com/IlyaKirillov/GoProject/master/WebBuilds/goboardmin.js"></script>
+    <script type="text/javascript" language="JavaScript" src="../lib/goboardmin.js"></script>
+    </script>
+
+    <!-- <script type="text/javascript" language="JavaScript" src="
+        https://cdn.rawgit.com/IlyaKirillov/GoProject/master/WebBuilds/goboardmin.js"></script> -->
 
     <!-- <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/ddc9089692b7c129b33ec1e619edf848643f5cbe/transformer/dist/transform.min.js"></script> -->
 
@@ -23,11 +23,15 @@
 
         Paste SGF for a game of toroidal Go (e.g. from Little Golem) in the box below, and then push the button to view the game!
         <br />
-        <label for="sgfIn">T-Go SGF:</label> <input type="text" id="sgfIn" />
+        <label for="sgfIn">T-Go SGF:</label>
+        <textarea id="sgfIn" rows="3"></textarea>
+        <label for="sgfOut">Transformed SGF:</label>
+        <textarea id="sgfOut" rows="3"></textarea>
         <br />
         <input type="button" id="goButton" value="show board (from t-Go SGF)" />
         <input type="button" id="updateButton" style="display: none" value="update all (t-Go SGF and board) (from board)" />
-        <label for="wraparoundSelect">number of wraparound lines to add:</label> <select id="wraparoundSelect">
+        <label for="wraparoundSelect">number of wraparound lines to add:</label>
+        <select id="wraparoundSelect">
             <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -37,7 +41,15 @@
             <option value="6">6</option>
             <option value="7">7</option>
 
-        </select> <label for="sgfIn">add comments:</label> <input type="checkbox" id="addComments" checked>
+        </select>
+        <label for="addComments">add comments:</label>
+        <input type="checkbox" id="addComments" checked>
+        <label for="wraparoundBorderSelect">Type of border for wraparound:</label>
+        <select id="wraparoundBorderSelect">
+            <option value="0">No border</option>
+            <option value="1">Box drawing symbols</option>
+            <option value="2" selected>Coordinates</option>
+        </select>
 
     </div>
 
@@ -89,9 +101,9 @@
             viewer.ran = true//just run this function once
 
 
-            function showBoard(tSgf, panningDirection, moveReference) {
-
-                if (!panningDirection && !moveReference) viewer.offset = [0, 0]
+            function showBoard(options) {
+                var { tSgf, panningDirection, moveReference, reset } = options
+                if (reset || !viewer.offset) viewer.offset = [0, 0]
                 if (panningDirection) {
                     var right = viewer.offset[0], up = viewer.offset[1]
                     switch (panningDirection) {
@@ -126,29 +138,34 @@
                     tSgf = document.getElementById("sgfIn").value
                 }
                 if (tSgf === '') {
-                    if (!viewer.emptySgfWarned) {
+                    if (!viewer.warnedEmptySgf) {
                         alert('No SGF was entered, so showing a simple sample instead.')
-                        viewer.emptySgfWarned = true
+                        viewer.warnedEmptySgf = true
                     }
-                    tSgf = '(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[maxiGos:6.45 (daoqi Ed)];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd])'//sample1
+                    tSgf = '(;GM[1]FF[4]CA[UTF-8]AP[go-variants-transformer]SZ[4]KM[0]HA[0]PB[Black]PW[White]C[Here is small sample game of Toroidal Go. It ends in a seki!];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd];B[ca];W[cd];B[db];W[dc];B[cc];MA[ba]W[da]C[It’s a seki; neither play should play at X.])'//sample7
                     document.getElementById("sgfIn").value = tSgf
                 }
                 var wraparound = Number(document.getElementById('wraparoundSelect').value)
-                , addComments = document.getElementById('addComments').checked
+                    , wraparoundBorder = Number(document.getElementById('wraparoundBorderSelect').value)
+                    , addComments = document.getElementById('addComments').checked
                 try {
-                    let transformer = go_variants_transformer({ addComments: addComments, projectionSettings: { offset: viewer.offset, wraparound: wraparound } })
+                    let transformer = go_variants_transformer({ addComments: addComments, projectionSettings: { offset: viewer.offset, wraparound: wraparound, wraparoundMarkersType: wraparoundBorder } })
                     var sgf = transformer.transform(tSgf)
+                    document.getElementById("sgfOut").value = sgf
                     document.viewer.transformer = transformer
                 }
                 catch (e) {
-                    alert('an error occurred. Maybe you need to try using a more modern browser like a recent version of Firefox or Chrome.')
+                    alert('an error occurred.')
                 }
                 if (!panningDirection) {
 
                     var oGameTree = GoBoardApi.Create_GameTree()
                     document.viewer.oGameTree = oGameTree
+                    GoBoardApi.Toggle_Rulers(oGameTree)
 
                     GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, "playerDiv");
+                    
+                    // GoBoardApi.Create_EditorVer(oGameTree, "playerDiv");
                     if (moveReference !== undefined)
                         GoBoardApi.Load_Sgf(document.viewer.oGameTree, sgf, undefined, moveReference);
                     else
@@ -162,8 +179,8 @@
                     document.getElementById('updateButton').style.display = "inline"
                 }
                 else {
-                    var ref = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
-                    GoBoardApi.Load_Sgf(document.viewer.oGameTree, sgf, undefined, ref);
+                    var moveReference = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
+                    GoBoardApi.Load_Sgf(document.viewer.oGameTree, sgf, undefined, moveReference);
                     document.getElementById('offsetTr').innerHTML = 'panned: [' + viewer.offset[0] + ', ' + viewer.offset[1] + ']'
                 }
 
@@ -171,17 +188,17 @@
 
             function updateVariantSgf() {
                 var sgf = GoBoardApi.Save_Sgf(document.viewer.oGameTree)
-                var ref = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
+                var moveReference = GoBoardApi.Get_MoveReference(document.viewer.oGameTree, false)
                 // var options = document.viewer.transformer.options
                 // options.boardDimensions = options.boardDimensions.map((x) => x - 2 * options.projectionSettings.wraparound) 
                 var tSgf = document.viewer.transformer.inverseTransform(sgf)
                 document.getElementById("sgfIn").value = tSgf
-                showBoard(tSgf, undefined, ref)
+                showBoard({ tSgf, moveReference })
             }
 
 
             document.getElementById('goButton').addEventListener('click', function () {
-                showBoard()
+                showBoard({})
             })
 
             document.getElementById('updateButton').addEventListener('click', function () {
@@ -191,7 +208,7 @@
                 ;[].forEach.call(document.querySelectorAll('.go-variants-panning'), function (el) {
                     el.addEventListener('click', function (e) {
                         var target = e.target || e.srcElement
-                        showBoard(undefined, target.id.substring(2))
+                        showBoard({ panningDirection: target.id.substring(2) })
                     })
                 });
 

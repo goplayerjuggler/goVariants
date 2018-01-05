@@ -17,19 +17,20 @@ describe("transformer", function () {
 		it("has borders, for default settings", function () {
 			var transformer = require('../src/transformer')()
 			//assume projection 11x11 to 19x19
-			expect(transformer.options.addMarkersForWraparound).toEqual(true)
+			expect(transformer.options.projectionSettings.wraparoundMarkersType).toEqual(2)
 			expect(transformer.options.boardDimensions).toEqual([11, 11])
-			expect(transformer.options.projectionSettings).toEqual({ wraparound: 4, offset: [0, 0] })
+			expect(transformer.options.projectionSettings).toEqual({ wraparound: 4, offset: [0, 0], wraparoundMarkersType:2 })
+			transformer = require('../src/transformer')({ projectionSettings:{wraparoundMarkersType: 1} })
 
 
-			expect(transformer.markersForWraparound)
+			expect(transformer.markersForWraparound.sort())
 				.toEqual(['de:│', 'pe:│', 'ed:─', 'ep:─', 'df:│', 'pf:│', 'fd:─', 'fp:─',
 					'dg:│', 'pg:│', 'gd:─', 'gp:─', 'dh:│', 'ph:│', 'hd:─', 'hp:─', 'di:│', 'pi:│',
 					'id:─', 'ip:─', 'dj:│', 'pj:│', 'jd:─', 'jp:─', 'dk:│', 'pk:│', 'kd:─', 'kp:─',
 					'dl:│', 'pl:│', 'ld:─', 'lp:─', 'dm:│', 'pm:│', 'md:─', 'mp:─', 'dn:│', 'pn:│',
-					'nd:─', 'np:─', 'do:│', 'po:│', 'od:─', 'op:─', 'dp:└', 'pp:┘', 'dd:┌', 'pd:┐'])
+					'nd:─', 'np:─', 'do:│', 'po:│', 'od:─', 'op:─', 'dp:└', 'pp:┘', 'dd:┌', 'pd:┐'].sort())
 
-			transformer = require('../src/transformer')({ addMarkersForWraparound: false })
+			transformer = require('../src/transformer')({ projectionSettings:{wraparoundMarkersType: 0} })
 			expect(transformer.markersForWraparound)
 				.toEqual([])
 		})
@@ -177,43 +178,53 @@ describe("transformer", function () {
 		})
 
 	})
-	describe("transform", () => {
+	describe("transform & inverseTransform", () => {
 		let transform = require('../src/transform')
-		it("transforms an sgf string to a string or an object (an instance of smartGame)", () => {
+		it("transform transforms an sgf string to a string or an object (an instance of smartGame); inverseTransform is an inverse", () => {
 			let sgf = `(;
 FF[4]
 CA[UTF-8]
 GM[1]
 SZ[4]
 AP[maxiGos:6.45 (daoqi Ed)]
+SO[foo]
 ;B[ad];W[bd];B[bc];W[ac];B[bb]
 ;W[aa];B[ab];W[dd])`
-			let transformedSgf = transform(sgf, { addMarkersForWraparound: false, addComments: false })
 
-			expect(transformedSgf).toEqual(`(;FF[4]CA[UTF-8]GM[1]SZ[12]AP[go-variants-transformer];B[]AB[ad][ah][al][ed][eh][el][id][ih][il]CR[ad][ah][al][ed][eh][el][id][ih][il]MN[1];W[]AW[bd][bh][bl][fd][fh][fl][jd][jh][jl]CR[bd][bh][bl][fd][fh][fl][jd][jh][jl]MN[2];B[]AB[bc][bg][bk][fc][fg][fk][jc][jg][jk]CR[bc][bg][bk][fc][fg][fk][jc][jg][jk]MN[3];W[]AW[ac][ag][ak][ec][eg][ek][ic][ig][ik]CR[ac][ag][ak][ec][eg][ek][ic][ig][ik]MN[4];B[]AB[bb][bf][bj][fb][ff][fj][jb][jf][jj]CR[bb][bf][bj][fb][ff][fj][jb][jf][jj]MN[5];W[]AW[aa][ae][ai][ea][ee][ei][ia][ie][ii]CR[aa][ae][ai][ea][ee][ei][ia][ie][ii]MN[6];B[]AB[ab][af][aj][eb][ef][ej][ib][if][ij]CR[ab][af][aj][eb][ef][ej][ib][if][ij]MN[7];W[]AW[dd][dh][dl][hd][hh][hl][ld][lh][ll]CR[dd][dh][dl][hd][hh][hl][ld][lh][ll]AE[ad][ah][al][ed][eh][el][id][ih][il]MN[8])`)
+			let options = { projectionSettings:{wraparoundMarkersType: 0}, addComments: false }, transformedSgf = transform(sgf, options)
 
-			transformedSgf = transform(sgf, { addMarkersForWraparound: false, addComments: false, transformToString: false })
+			expect(transformedSgf).toEqual(`(;FF[4]CA[UTF-8]GM[1]SZ[12]AP[go-variants-transformer]SO[foo (source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application)];B[]AB[ad][ah][al][ed][eh][el][id][ih][il]CR[ad][ah][al][ed][eh][el][id][ih][il]MN[1];W[]AW[bd][bh][bl][fd][fh][fl][jd][jh][jl]CR[bd][bh][bl][fd][fh][fl][jd][jh][jl]MN[2];B[]AB[bc][bg][bk][fc][fg][fk][jc][jg][jk]CR[bc][bg][bk][fc][fg][fk][jc][jg][jk]MN[3];W[]AW[ac][ag][ak][ec][eg][ek][ic][ig][ik]CR[ac][ag][ak][ec][eg][ek][ic][ig][ik]MN[4];B[]AB[bb][bf][bj][fb][ff][fj][jb][jf][jj]CR[bb][bf][bj][fb][ff][fj][jb][jf][jj]MN[5];W[]AW[aa][ae][ai][ea][ee][ei][ia][ie][ii]CR[aa][ae][ai][ea][ee][ei][ia][ie][ii]MN[6];B[]AB[ab][af][aj][eb][ef][ej][ib][if][ij]CR[ab][af][aj][eb][ef][ej][ib][if][ij]MN[7];W[]AW[dd][dh][dl][hd][hh][hl][ld][lh][ll]CR[dd][dh][dl][hd][hh][hl][ld][lh][ll]AE[ad][ah][al][ed][eh][el][id][ih][il]MN[8])`)
+
+			let transformer = require('../src/transformer')(options)
+			let smartGame = require('smartgame')
+				, inverseTransformedSgf = transformer.inverseTransform(transformedSgf, smartGame)
+			expect(inverseTransformedSgf).toEqual('(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[go-variants-transformer]SO[foo];MN[1]B[ad];MN[2]W[bd];MN[3]B[bc];MN[4]W[ac];MN[5]B[bb];MN[6]W[aa];MN[7]B[ab];MN[8]W[dd])')
+
+			options.transformToString = false
+			transformedSgf = transform(sgf, options)
 			expect(transformedSgf.game.nodes.length).toEqual(9)
 
 
 
 		})
-		it("transforms all 6 samples successfully", () => {
+		it("transforms all samples successfully and transforms back again too", () => {
 
-			let path = require('path')
+			const path = require('path')
 				, fs = require('fs')
 				, appDir = process.cwd()
-				, transform = require('../src/transform')
+				, transformer = require('../src/transformer')()
+				, transform = transformer.transform
+				, inverseTransform = transformer.inverseTransform
 				, writeTransformedSgfToFiles = false
 
-			for (let i = 1; i < 7; i++) {
+			for (let i = 1; i < 8; i++) {
 
 				let filePath = path.join(appDir, 'samples', `sample-${i}.sgf`)
 				if (writeTransformedSgfToFiles)
 					var transformedFile = path.join(appDir, 'samples', `.sample-${i}_transformed.sgf`)
 				fs.readFile(filePath, 'utf-8', function (err, sgfData) {
 					if (writeTransformedSgfToFiles) {
-						fs.writeFile(transformedFile, transform(sgfData), (err) => {
+						fs.writeFile(transformedFile, inverseTransform(transform(sgfData)), (err) => {
 							if (err !== null)
 								console.log(err.message)
 						})
@@ -225,5 +236,13 @@ AP[maxiGos:6.45 (daoqi Ed)]
 
 		})
 
+	})
+	describe("inverseTransform", () => {
+		it("gets rid of node.B[xy] if there is a siblingNode.AB[xy]; similarly for W and AW - this is needed to handle clicks at points where the next move is, with CGoBoard", () => {
+			let wrappedGame = require('./testInverseTransform.js')
+			wrappedGame.first()
+			expect(wrappedGame.game.sequences.length).toEqual(3)
+			expect (require('./testInverseTransform2.js').game.sequences[1].sequences.length).toEqual(3)
+		})
 	})
 })

@@ -1,19 +1,45 @@
 ﻿/* globals module: false, require: false
 
 */
-module.exports = function (options
+
+/**
+ * 
+ * @param {object} [options=] Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
+ * @param {boolean} [options.addComments = true] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
+ * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
+ * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
+ * @param {object} [options.projectionSettings=] Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
+ * 
+ * @param {number} [options.projectionSettings.wraparoundMarkersType = 2] 0: no symbols are added to indicate the part of the wraparound area that’s next to the main grid;
+ * 1: symbols are added using unicode symbols (from “Box Drawings”);
+ * 2: symbols show t-Go coordinates.
+ * @param {number} [options.projectionSettings.wraparound = 4]  Number of lines to add for the “wraparound”.
+ * @param {array} [options.projectionSettings.offset = [0,0]]  Translation to apply to all moves.
+ * @param {boolean} [options.transformToString=true] When set to false, the output is an object (an instance of a Smartgame).
+ * @public
+ * @return {object} An object exposing functions for going back and forth between SGF for a standard viewer, and SGF for a game of toroidal Go
+ *//*todos:
+options.markLastMove Default value: 'CR'
+opions.placesToCount Default: undefined. May be: 'last'|[countInfo1, .. countInfo1]. countInfo is a path plus an array with a point for each chain to be considered as dead. {path, deadChains: [...]}
+options.projectionSettings.rotation {integer} Default value: 0. Allowed values: 0 .. 3
+options.projectionSettings.normalize1stMove array, or one of: C, TL TR BL BR 
+options.projectionSettings.normalize2ndMove 
+
+*/
+function transformer(options
 ) {
 	'use strict';
-	let //_ = require('lodash/core')
-		_flatten = require('lodash/flatten'),
-		_uniqBy = require('lodash/uniqBy')
+	const //_ = require('lodash/core')
+		_flatten = require('lodash/flatten')
+		, _uniqBy = require('lodash/uniqBy')
+		, _fi = require('lodash/findIndex')
 		, modulo = (x, y) => (x % y + y) % y
+		, sourceSgfMessage = 'source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application'
 	options = options || {}
 
 	if (options.addPasses === undefined)
 		options.addPasses = true;
-	if (options.addMarkersForWraparound === undefined)
-		options.addMarkersForWraparound = true;
+
 	options.boardDimensions = options.boardDimensions || [11, 11]
 
 	if (options.transformToString === undefined)
@@ -21,7 +47,7 @@ module.exports = function (options
 
 	if (options.addComments === undefined)
 		options.addComments = true;
-	options.projectionSettings = Object.assign({ wraparound: 4, offset: [0, 0] }, options.projectionSettings)//{wraparound: 4, offset: [0, 0] , ... options.projectionSettings} //options.projectionSettings || { wraparound: 4, offset: [0, 0] }
+	options.projectionSettings = Object.assign({ wraparound: 4, offset: [0, 0], wraparoundMarkersType: 2 }, options.projectionSettings)//{wraparound: 4, offset: [0, 0] ,  wraparoundMarkersType = 1,  ... options.projectionSettings} 
 
 	let wraparound = options.projectionSettings.wraparound
 
@@ -51,6 +77,9 @@ module.exports = function (options
 
 	$.coordinateLabels = coordinateLabels
 	$.translateCoordinates = translateCoordinates
+	/**
+	 * @public
+	 */
 	$.options = options
 
 	$.projectOnLine = function (a, isVertical) {
@@ -60,15 +89,15 @@ module.exports = function (options
 		line: 0,...,(m-1)
 		=>
 		0,...,(n-1), (start line) n, ... , (n + m - 1) end line,  (n+m), ... , (2n + m - 1)
-		
+
 		coordinate a ∈ {0 .. m-1} projects to n + a in main area
 		all projections are of the form n + a + xm, x ∈ ℤ s.t. 0 ≤ n + a + xm ≤ 2n + m -1
-		-xm ≤ n + a 
+		-xm ≤ n + a
 			smallest such x < 0 is ceil(-(n+a)/m)
 		 xm ≤ n + m - 1 -a
 			largest such x is floor((n + m - 1 -a) / m)
-				
-		
+
+
 		*/
 
 		const m //= options.boardDimensions[0]
@@ -82,10 +111,10 @@ module.exports = function (options
 	}
 
 	// /**
-	//  * 
+	//  *
 	//  * @param {array} r
-	//  * @param {boolean} isVertical 
-	//  * 
+	//  * @param {boolean} isVertical
+	//  *
 	//  * @returns {number} Integer a such that projectOnLine(a) equals r
 	//  */
 	// $.inverseProjectOnLine = function (r, isVertical) {
@@ -118,7 +147,7 @@ module.exports = function (options
 	/**
 	 * Projects a point on the t-Go board to the array of points on the standard grid/board.
 	 * @param {Array} p The point in the t-Go board to be projected on to the grid.
-	 * @returns {Array} 
+	 * @returns {Array}
 	 */
 	function projectOnFlat(p) {
 		const a = $.projectOnLine(p[0] + options.projectionSettings.offset[0])
@@ -135,8 +164,10 @@ module.exports = function (options
 		$.markersForWraparound = []
 
 		// $.getMarkersForWraparound = function (){
-		if (options.addMarkersForWraparound) {
-			let m = options.boardDimensions[0]
+		if (options.projectionSettings.wraparoundMarkersType > 0 && options.projectionSettings.wraparound > 0) {
+			const m = options.boardDimensions[0],
+				n = options.boardDimensions[1]
+
 
 			/*
 			m: boardDimensions[0] : 11
@@ -144,19 +175,30 @@ module.exports = function (options
 			line: 0,...,(m-1)
 			=>
 			0,...,(n-1), (start line) n, ... , (n + m - 1) end line,  (n+m), ... , (2n + m - 1)
-			
+
 			*/
 
 			let board = []
 			for (let i = 1; i <= m; i++) {
-				board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1 + i) + ":│")
-				board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound - 1 + i) + ":│")
-				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound - 1) + ":─")
-				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound + m) + ":─")
+				let label = '─'//U+2500 Box Drawings Light Horizontal
+				if (options.projectionSettings.wraparoundMarkersType === 2) {
+					label = coordinateLabels(i - 1)
+				}
+				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound - 1) + ":" + label)
+				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound + m) + ":" + label)
+			}
+			for (let i = 1; i <= n; i++) {
+
+				let label = '│'//unicode too
+				if (options.projectionSettings.wraparoundMarkersType === 2) {
+					label = '' + i
+				}
+				board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1 + i) + ":" + label)
+				board.push(coordinateLabels(wraparound + n) + coordinateLabels(wraparound - 1 + i) + ":" + label)
 			}
 			//┘  ┌  └ ┐
-			board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound + m) + ":└")
-			board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound + m) + ":┘")
+			board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound + n) + ":└")
+			board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound + n) + ":┘")
 			board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1) + ":┌")
 			board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound - 1) + ":┐")
 			$.markersForWraparound = board
@@ -165,24 +207,28 @@ module.exports = function (options
 	setUpMarkers()
 
 
+	$.coords2String =
+		/**
+		 * converts coordinates to a string
+		 */
+		function coords2String(coords) {
+			return coordinateLabels(coords[0]) + coordinateLabels(coords[1])
+		}
 
-
-	// convert coordinates to a string 
-	$.coords2String = function coords2String(coords) {
-		return coordinateLabels(coords[0]) + coordinateLabels(coords[1])
-	}
-
-	function goThroughTree(state)//(wrappedGame, tGo, node, next)
-	{
+	function goThroughTree(state) {
 		let { wrappedGame, node, pending, currentPath, tGo } = state
-		let nbVariations = wrappedGame.variations().length
-		if (nbVariations > 0) {
+			, nbVariations = wrappedGame.variations().length
+		if (currentPath.m > 1000) throw new Error('seem to be stuck!');
+		state.hasSiblings = nbVariations > 0
+		if (state.hasSiblings) {
 			// if(currentPath[m] === undefined)
 			// currentPath[m] = 0
 			// else
 			// currentPath[m] += 1
 			// currentPath.m += 1
-			for (let i = 1; i < nbVariations; i++) {
+			for (let i = nbVariations - 1; i > 0; i--)
+			//pile up in this order, as it's FILO and we want the last variation, which may contain a mode added by CGoboard to go last
+			{
 				let pathForLater = Object.assign({}, currentPath)//{...currentPath}
 				pathForLater[currentPath.m + 1] = i
 				pathForLater.m += 1
@@ -200,12 +246,13 @@ module.exports = function (options
 		}
 
 		let nextNode = wrappedGame.next().node()
-		if (node === nextNode) {//at a leaf: 
+		if (node === nextNode) {//at a leaf:
 			if (pending.length === 0) {
 				state.node = null
 				return state.node//finished
 			}
 			let fromStack = pending.pop()
+			state.hasSiblings = true
 			// if (fromStack === null) {
 			// 	node = null
 			// 	return//finished!
@@ -224,8 +271,9 @@ module.exports = function (options
 
 	/**
 	 * Apart from a few details, this is an inverse of the transform function.
-	 * @param {smartgame|string} wrappedGame 
+	 * @param {smartgame|string} wrappedGame
 	 * @param {smartgame} smartgame
+	 * @public
 	 */
 	function inverseTransform(
 		wrappedGame, smartgame) {
@@ -250,7 +298,13 @@ module.exports = function (options
 				if (node.C === '')
 					delete node.C
 			}
-			, cleanLabels = () => {
+			,
+			/**
+			 * Function to:
+			 * 	- remove the “border” (unicode symbols added by the transform to indicate where the wraparound area meets the main grid).
+			 * 	- remove CM (colour map) and CT (colour table) which are nonstandard SGF added by CGoboard for background colour (could be interesting to use this feature later on).
+			 */
+			cleanLabels = () => {
 
 				let labels = []
 				if (node.LB !== undefined) {
@@ -276,66 +330,148 @@ module.exports = function (options
 				node.LB = labels
 				if (node.LB.length === 0)
 					delete node.LB
+
+				if (node.CM)
+					delete node.CM
+				if (node.CT)
+					delete node.CT
 			}
 
 		cleanLabels()
 		node.SZ = options.boardDimensions[0]
 		node.AP = "go-variants-transformer"
 
-		let state = { wrappedGame, node, pending, currentPath }
+		if (node.SO !== undefined) {
+			let cleanSourceRegex = new RegExp(` \\(${sourceSgfMessage}\\)`)
+			node.SO = node.SO.replace(cleanSourceRegex, '')
+			// if (node.SO === '')
+			// 	delete node.SO
+		}
 
+		let state = {
+			wrappedGame, node, pending, currentPath, siblingMoves: {}//, parentsWithChildToDelete: [] 
+		}
 
 		node = goThroughTree(state)
 		while (node !== null) {
-
-
-			let
-				isBlack = node.B !== undefined || node.AB !== undefined
-				, move = isBlack ? node.AB : node.AW
-			if (move === undefined) move = isBlack ? node.B : node.W
-
 			cleanLabels()
 			cleanComments()
 
-			if (!Array.isArray(move)) {
-				if (move === undefined || move === '') {
-					node = goThroughTree(state)
-					continue
+			const
+				isBlack = node.AB !== undefined || node.B !== undefined
+				, addedStones = isBlack ? node.AB : node.AW
+				, playedStone = isBlack ? node.B : node.W
+				, move = addedStones ? addedStones : playedStone
+				, moveAsArray = Array.isArray(move) ? move : [move]
+				, isAPass = isBlack ? node.B === '' : node.W === ''
+				, moveHasCoords = move !== undefined && move !== ''
+				, coords = !moveHasCoords ? undefined : $.coords2String($.inverseProjectOnFlat(moveAsArray.map(translateCoordinates)))
+
+			//alter the node
+
+			/*
+			logic removing a node added by CGoboard, if there already is the same move as AB or AW in a prior variation; assuming 
+			the variation to be removed is the last of the siblings - which does seem to be the way CGoboard behaves when a click 
+			is made on a point where the next node is AB or AW.  
+			*/
+			if (state.hasSiblings) {
+				let pathForParent = Object.assign({}, wrappedGame.path)
+				pathForParent.m--
+				delete pathForParent[pathForParent.m]
+				pathForParent = wrappedGame.pathTransform(pathForParent)
+				// wrappedGame.previous()
+				if (state.siblingMoves[pathForParent] === undefined) {
+					state.siblingMoves[pathForParent] = []
 				}
-				move = [move]
+				if (addedStones) {
+					state.siblingMoves[pathForParent].push(coords)
+				}
+				else
+					if (playedStone && state.siblingMoves[pathForParent].indexOf(coords) > -1) {
+
+						// state.parentsWithChildToDelete.push(pathForParent)
+						node.XX = "inverseTransformToDelete"
+					}
+				// wrappedGame.goTo(currentPath)
 			}
 
-			const coords = $.coords2String($.inverseProjectOnFlat(move.map(translateCoordinates)))
-
-			//alter the node 
 			delete node[isBlack ? 'AB' : 'AW']
+			delete node[isBlack ? 'B' : 'W']
 			delete node.CR
 			delete node.AE
 
-			node[isBlack ? 'B' : 'W'] = coords
+			if (isAPass) {
+				node[isBlack ? 'B' : 'W'] = ''
+			}
 
-				;/*note: this next semicolon is needed! */[
-					//'CR',todo: add if not marking the move
-					'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
-						// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
-						if (node[sgfProperty] === undefined) return
-						let points = []
-						if (Array.isArray(node[sgfProperty])) {
-							points = node[sgfProperty]
-						}
-						else {
-							points = [node[sgfProperty]]
-						}
-						points =
-							$.inverseProjectOnFlat(
-								points.map(translateCoordinates), true
-							)
-								.map($.coords2String)
-						node[sgfProperty] = points
-					})
+			if (moveHasCoords) {
+				node[isBlack ? 'B' : 'W'] = coords
+			}
+
+			;/*note: this next semicolon is needed! */[
+				//'CR',todo: add if not marking the move
+				'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
+					// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
+					if (node[sgfProperty] === undefined) return
+					let points = []
+					if (Array.isArray(node[sgfProperty])) {
+						points = node[sgfProperty]
+					}
+					else {
+						points = [node[sgfProperty]]
+					}
+					points =
+						$.inverseProjectOnFlat(
+							points.map(translateCoordinates), true
+						)
+							.map($.coords2String)
+					node[sgfProperty] = points
+				})
 			// move to next node
 			node = goThroughTree(state)
 		}
+
+		// state.parentsWithChildToDelete.forEach((path) => {
+		// 	//remove the sgf node
+		// 	wrappedGame.goTo(path)
+		// 	let sequences = wrappedGame.game.sequences
+		// 	let index = _fi(sequences, (seq) => seq.nodes[0].inverseTransformToDelete)
+		// 		, tmpI = 0
+		// 	while (index > -1) {
+		// 		sequences.splice(index, 1)
+		// 		index = _fi(sequences, (seq) => seq.nodes[0].inverseTransformToDelete)
+		// 		tmpI++
+		// 		if (tmpI > 100) throw new Error('seem to be stuck!');
+		// 	}
+
+		// 	// console.log(path)
+		// })
+
+		let deleteNodes = (sequence) => {
+			if (sequence.sequences) {
+
+				let
+					sequences = sequence.sequences
+					, index = _fi(sequences, (seq) => seq.nodes[0].XX === 'inverseTransformToDelete')
+					, tmpI = 0, max = sequences.length
+				while (index > -1) {
+					sequences.splice(index, 1)
+					index = _fi(sequences, (seq) => seq.nodes[0].XX === 'inverseTransformToDelete')
+					tmpI++
+					if (tmpI > max) throw new Error('seem to be stuck!');
+				}
+				for (let index2 = 0; index2 < sequences.length; index2++) {
+					// deleteNodes(sequences[index2].nodes[sequences[index2].nodes.length - 1]);
+					deleteNodes(sequences[index2]);
+
+				}
+			}
+			else if (sequence.nodes)
+				deleteNodes(sequence.nodes[sequence.nodes.length - 1])
+
+		}
+		deleteNodes(wrappedGame.game)
+
 		if (options.transformToString)
 			return smartgame.generate({ gameTrees: [wrappedGame.game] });
 		else return wrappedGame
@@ -344,21 +480,23 @@ module.exports = function (options
 	$.inverseTransform = inverseTransform
 
 	/**
-	 * 
-	 * @param {*} tGoSgf 
-	 * @param {*} tGo 
-	 * @param {*} smartgame 
-	 * @param {*} smartgamer 
+	 * Main function; converts SGF for a Go variant (so far, just toroidal Go or t-Go).
+	 * @param {string} tSgf
+	 * @param {object} tGo Engine for counting liberties in t-Go. An instance of go-variants-engine.
+	 * @param {*} smartgame
+	 * @param {*} smartgamer
+	 * @returns {string|object} SGF that can be viewed in a standard SGF viewer. (See `options.transformToString` for the data type of the value returned.)
+	 * @public
 	 */
 	function transform(
-		tGoSgf //eg 11x11 sgf from LittleGolem
+		tSgf //eg 11x11 sgf from LittleGolem
 		, tGo //app implementing t-Go
 		, smartgame
 		, smartgamer) {
 
 		if (tGo === undefined) {
 			tGo = require('go-variants-engine')({
-				// boardMode:'t', 
+				// boardMode:'t',
 				boardDimensions: options.boardDimensions
 			})
 			// tGo = require('../node_modules/go-variants-engine')({boardMode:'t', boardDimensions:options.boardDimensions})
@@ -375,7 +513,7 @@ module.exports = function (options
 			smartgamer = require('smartgamer')
 		}
 		// console.log(tGo)
-		let parsed = smartgame.parse(tGoSgf)
+		let parsed = smartgame.parse(tSgf)
 			, wrappedGame = smartgamer(parsed)
 			, node = wrappedGame.node()
 			, passes = 0
@@ -421,15 +559,19 @@ module.exports = function (options
 		setLabels()
 
 		if (node.SO !== undefined)
-			node.SO = wrappedGame.game.nodes[0].SO + " (source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application)"
+			node.SO = wrappedGame.game.nodes[0].SO + ` (${sourceSgfMessage})`
+		//else node.SO = sourceSgfMessage//prefer not to add the message when original Sgf has no SO info.
+
 		node.AP = "go-variants-transformer"
 
+
+		let state = { wrappedGame, node, pending, currentPath, tGo }
 
 		function comment(isPass, isBlack) {
 			if (!options.addComments)
 				return
 
-			let r = 'move ' + currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
+			let r = 'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
 			//let r =  'Black captures: ' + tGo.board.captured[1] + '\r\nWhite captures: ' + tGo.board.captured[0]
 			if (isPass)
 				r += '\n' + (isBlack ? 'Black passes' : 'White passes')
@@ -438,8 +580,6 @@ module.exports = function (options
 			node.C = r
 			return
 		}
-		let state = { wrappedGame, node, pending, currentPath, tGo }
-
 
 		node = goThroughTree(state)
 		while (node !== null) {
@@ -452,7 +592,7 @@ module.exports = function (options
 					&& options.boardDimensions[0] <= 19
 					&& move === "tt" //weird SGF[3] way to show a pass move!
 				)
-			if (move === undefined) {
+			if (move === undefined && !isPass) {
 				node = goThroughTree(state)
 				continue
 			}
@@ -469,7 +609,7 @@ module.exports = function (options
 				// }
 				passes++
 				if (passes >= 1000)
-					break//just in case! 
+					break//just in case!
 				node = goThroughTree(state)
 			}
 			else {
@@ -497,7 +637,7 @@ module.exports = function (options
 								.map($.projectOnFlat))
 							.map($.coords2String)
 
-				//alter the node 
+				//alter the node
 				if (options.addPasses)
 					node[isBlack ? 'B' : 'W'] = ''
 				else delete node[isBlack ? 'B' : 'W']
@@ -514,7 +654,7 @@ module.exports = function (options
 					todo: other properties with board coordinates
 					Leave for now:
 					AR
-					LN				
+					LN
 					*/
 
 					;/*note this semicolon is needed! */
@@ -558,3 +698,4 @@ module.exports = function (options
 	return $
 
 }
+module.exports = transformer

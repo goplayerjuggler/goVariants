@@ -5,7 +5,7 @@ let appDir = path.dirname(require.main.filename);
 let transform = require('../src/transform')
 let removeFiles = false
 
-for (let i = 1; i < 7; i++) {
+for (let i = 1; i < 8]; i++) {
     
     let filePath = path.join(appDir, `sample-${i}.sgf`)
     let transformedFile = path.join(appDir, `.sample-${i}_transformed.sgf`)
