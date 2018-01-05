@@ -4,7 +4,7 @@ Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game 
 
 ## Online samples
 
--   [viewer](http://goplayerjuggler.blogspot.com/2017/12/t-go-viewer-2-improved-version-that.html)
+-   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html)
 -   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
 
 These blog posts were made by adapting the files `viewer.html` and `blogTemplate.html` in the folder `/samples`.
@@ -15,9 +15,9 @@ This section just assumes basic knowledge of HTML and javascript.
 
 In order to review a t-Go game, this module provides a minified javascript file `transformer.min.js` in the folder `dist`. This file is a minified, javascript version of the file `src/transformer.js`. If `transformer.min.js` is referenced by an HTML page, it creates a global function `goVariantsTransformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject) in order to play through a t-Go game in a browser like Firefox.
 
-A working sample is provided in `/samples/viewer.html`.
+A working sample is provided [here](https://goplayerjuggler.github.io/goVariants/tGoEditor.html); the source code is under the `docs` folder of the parent github repository. 
 
-See the API section for details or better yet, the code on github. 
+See the API section for details or better yet, the code here on github. 
 
 ## Usage for node developers
 
@@ -67,6 +67,9 @@ A simple way to convert an SGF (t-Go) file is to run `/samples/transformOneFile.
 ```shell
 $ node transformOneFile path_to_input_sgf path_to_output_sgf 
 ```
+
+## Licence
+[0BSD (BSD Zero Clause License)](https://spdx.org/licenses/0BSD.html)
 
 ## API
 
