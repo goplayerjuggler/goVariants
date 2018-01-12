@@ -1,7 +1,7 @@
 
-let path = require('path');
+// let path = require('path');
 let fs = require('fs');
-let appDir = path.dirname(require.main.filename);
+// let appDir = path.dirname(require.main.filename);
 let transform = require('../src/transform')
 
 let filePath = ``//enter path to an SGF (t-Go) file
