@@ -4,18 +4,17 @@ Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game 
 
 ## Online samples
 
--   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html)
+-   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html) (the source code is [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)). 
 -   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
+    This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
 
-These blog posts were made by adapting the files `viewer.html` and `blogTemplate.html` in the folder `/samples`.
-
-## Usage - simple scenario for reviewing a t-Go game
+## Usage - simple scenario for HTML / Javascript developers
 
 This section just assumes basic knowledge of HTML and javascript.
 
-In order to review a t-Go game, this module provides a minified javascript file `transformer.min.js` in the folder `dist`. This file is a minified, javascript version of the file `src/transformer.js`. If `transformer.min.js` is referenced by an HTML page, it creates a global function `goVariantsTransformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject) in order to play through a t-Go game in a browser like Firefox.
+In order to review a t-Go game, this module provides a minified javascript file [dist/transformer.min.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/dist/transformer.min.js). This file is a minified, javascript version of the file [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js). If `transformer.min.js` is referenced by an HTML page, it creates a global function `go_variants_transformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject) in order to play through a t-Go game in a browser like Firefox.
 
-A working sample is provided [here](https://goplayerjuggler.github.io/goVariants/tGoEditor.html); the source code is under the `docs` folder of the parent github repository. 
+A simple sample, to be run locally, is [here](https://goplayerjuggler.github.io/goVariants/tree/master/transformer/samples/viewerLocal.html. 
 
 See the API section for details or better yet, the code here on github. 
 
@@ -26,13 +25,13 @@ This section is for those who are familiar or are getting familiar with node.js 
 ### Installing Go-Variants-Transformer
 
 Copy or clone (via git) the source files for Go-Variants. 
-Then, from within the local install folder:
+Then, from within the `transfomer` local sub-folder:
 
 ```shell
 $ npm install
 ```
 
-If you have installed `yarn`, you can use it instead of `npm`.
+If you `yarn`, you can use it instead of `npm`.
 
 ```shell
 $ yarn install

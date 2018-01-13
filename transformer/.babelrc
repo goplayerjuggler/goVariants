@@ -6,4 +6,8 @@
       }
     }]
   ]
+  , "plugins":[
+    "babel-plugin-transform-object-rest-spread",
+    "transform-react-jsx"
+  ]
 }

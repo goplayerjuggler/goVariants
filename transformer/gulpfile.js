@@ -1,19 +1,21 @@
 "use strict"
 // grab our packages
-var gulp = require('gulp'),
-  jshint = require('gulp-jshint'),
+const gulp = require('gulp'),
+  eslint = require('gulp-eslint'),
 
-  jasmine = require('gulp-jasmine');
+  jasmine = require('gulp-jasmine'),
+  
+ gulpsync = require('gulp-sync')(gulp)
 
 
 // define the default task and add the watch task to it
 gulp.task('default', ['watch']);
 
-// configure the jshint task
-gulp.task('jshint', function () {
-  return gulp.src('src/**/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter('jshint-stylish'));
+// configure the eslint task
+gulp.task('lint', function () {
+  return gulp.src(['src/**/*.js', 'samples/**/*.js', 'ui/**/*.js', 'utils/**/*.js'])
+    .pipe(eslint())
+    .pipe(eslint.format())
 });
 // configure the jasmine/unit test task
 gulp.task('test', () =>
@@ -24,19 +26,19 @@ gulp.task('test', () =>
 
 // configure which files to watch and what tasks to use on file changes
 gulp.task('watch', function () {
-  gulp.watch('src/**/*.js', ['jshint', 'test']);
+  gulp.watch('src/**/*.js', ['lint', 'test']);
 });
 
-// var browserify = require('browserify');
-// var source = require('vinyl-source-stream');
-// var buffer = require('vinyl-buffer');
-// var uglify = require('gulp-uglify');
-// var sourcemaps = require('gulp-sourcemaps');
-// var gutil = require('gulp-util');
+// let browserify = require('browserify');
+// let source = require('vinyl-source-stream');
+// let buffer = require('vinyl-buffer');
+// let uglify = require('gulp-uglify');
+// let sourcemaps = require('gulp-sourcemaps');
+// let gutil = require('gulp-util');
 
 // gulp.task('bundle', function () {
 //   // set up the browserify instance on a task basis
-//   var b = browserify({
+//   let b = browserify({
 //     entries: 'src/transform.js',
 //     debug: true
 //   });
@@ -52,33 +54,38 @@ gulp.task('watch', function () {
 //     .pipe(gulp.dest('./dist/'));
 // });
 //---
-var browserify = require('browserify');
-// var gulp = require('gulp');
-var source = require('vinyl-source-stream');
-var buffer = require('vinyl-buffer');
-var uglify = require('gulp-uglify');
-var sourcemaps = require('gulp-sourcemaps');
-var gutil = require('gulp-util');
-// var babelify = require("babelify");
-var babel = require('gulp-babel');
+let browserify = require('browserify');
+// let gulp = require('gulp');
+let source = require('vinyl-source-stream');
+let buffer = require('vinyl-buffer');
+let uglify = require('gulp-uglify');
+let sourcemaps = require('gulp-sourcemaps');
+let gutil = require('gulp-util');
+let babelify = require("babelify");
+let babel = require('gulp-babel');
 
-function bundler (fileName) {
+function bundler(fileName, standalone) {
   return () => {
-
-  var b = browserify(`src/${fileName}.js`, { standalone: `go_variants_${fileName}` });
-  return b
-    .bundle()
-    .pipe(source(`${fileName}.min.js`))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true}))
-    .pipe(babel())
-
-    .pipe(uglify())
-    .on('error', gutil.log)
-    .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('./dist'));
+    let options = { debug: true }
+    if (standalone) {
+      options.standalone =`go_variants_${standalone}`
+    }
+    let b = browserify(`${fileName}.js`, options).transform(babelify);
+    return b
+      .bundle()
+      .pipe(source(`${fileName}.min.js`))
+      .pipe(buffer())
+      .pipe(sourcemaps.init({ loadMaps: true }))
+      .pipe(babel())
+      .pipe(uglify())
+      .on('error', gutil.log)
+      .pipe(sourcemaps.write('./'))
+      .pipe(gulp.dest('./dist'));
   }
 }
 
-gulp.task('bundle1', bundler('transform'));
-gulp.task('bundle2', bundler('transformer'));
+gulp.task('bundle1', bundler('src/transform', 'transform'));
+gulp.task('bundle2', bundler('src/transformer', 'transformer'));
+gulp.task('bundle3', bundler('ui/editor', 'editor'));
+
+gulp.task('bundles', gulpsync.sync(['bundle1', 'bundle2', 'bundle3']))

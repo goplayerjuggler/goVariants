@@ -8,11 +8,17 @@
  * @param {boolean} [options.addComments = true] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
  * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
  * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
+ * @param {number} [options.coordinatesType = 1] 0: none;
+ * 1: Bottom to top & left to right; western numbers;
+ * 2: Top to  & left to right; western numbers (not yet implemented);
+ * 3: Top to bottom & left to right; first coordinate is in Japanese characters (not yet implemented);
+ * 4: Top to bottom & left to right; first coordinate is in Chinese characters (not yet implemented);
+ * @param {number} [options.wraparoundMarkersType = 1] 0: none;
+ * 1: Full outline, using unicode Box Drawing symbols;
+ * 2: corners and middles, using unicode Box Drawing symbols;
+ * 3: just corners, using unicode Box Drawing symbols;
+ * 4: just middles, using unicode Box Drawing symbols;
  * @param {object} [options.projectionSettings=] Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
- * 
- * @param {number} [options.projectionSettings.wraparoundMarkersType = 2] 0: no symbols are added to indicate the part of the wraparound area that’s next to the main grid;
- * 1: symbols are added using unicode symbols (from “Box Drawings”);
- * 2: symbols show t-Go coordinates.
  * @param {number} [options.projectionSettings.wraparound = 4]  Number of lines to add for the “wraparound”.
  * @param {array} [options.projectionSettings.offset = [0,0]]  Translation to apply to all moves.
  * @param {boolean} [options.transformToString=true] When set to false, the output is an object (an instance of a Smartgame).
@@ -29,13 +35,28 @@ options.projectionSettings.normalize2ndMove
 function transformer(options
 ) {
 	'use strict';
-	const //_ = require('lodash/core')
+	const
 		_flatten = require('lodash/flatten')
 		, _uniqBy = require('lodash/uniqBy')
 		, _fi = require('lodash/findIndex')
 		, modulo = (x, y) => (x % y + y) % y
 		, sourceSgfMessage = 'source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application'
-	options = options || {}
+	options = {
+		addPasses: true
+		, boardDimensions: [11, 11]
+		, transformToString: true
+		, addComments: true
+		, coordinatesType: 1
+		, wraparoundMarkersType: 1
+		//above are the defaults
+		, ...options
+	}
+	options.projectionSettings =
+		{
+			wraparound: 4,
+			offset: [0, 0],
+			...options.projectionSettings
+		}
 
 	if (options.addPasses === undefined)
 		options.addPasses = true;
@@ -47,7 +68,7 @@ function transformer(options
 
 	if (options.addComments === undefined)
 		options.addComments = true;
-	options.projectionSettings = Object.assign({ wraparound: 4, offset: [0, 0], wraparoundMarkersType: 2 }, options.projectionSettings)//{wraparound: 4, offset: [0, 0] ,  wraparoundMarkersType = 1,  ... options.projectionSettings} 
+	// options.projectionSettings = 
 
 	let wraparound = options.projectionSettings.wraparound
 
@@ -110,25 +131,6 @@ function transformer(options
 		return r
 	}
 
-	// /**
-	//  *
-	//  * @param {array} r
-	//  * @param {boolean} isVertical
-	//  *
-	//  * @returns {number} Integer a such that projectOnLine(a) equals r
-	//  */
-	// $.inverseProjectOnLine = function (r, isVertical) {
-	// 	const m //= options.boardDimensions[0]
-	// 		= options.boardDimensions[isVertical ? 1 : 0]
-	// 		, n = options.projectionSettings.wraparound
-	// 	for (let i = 0; i < r.length; i++) {
-	// 		if (r[i] < n) continue
-	// 		if (r[i] >= n + m) continue//not really needed
-	// 		return r[i] - n
-	// 	}
-	// }
-
-
 	/**
 	 * This is the inverse function to the function “projectOnFlat” – at least it is when “multiple” is false.
 	 * @param {Array} points The point or array of points projected onto the grid.
@@ -160,48 +162,80 @@ function transformer(options
 	}
 	$.projectOnFlat = projectOnFlat
 
+	$.modX = (x) => modulo(x, options.boardDimensions[0])
+	$.modY = (y) => modulo(y, options.boardDimensions[1])
+
 	let setUpMarkers = () => {
-		$.markersForWraparound = []
+		$.wraparoundAndCoords = []
 
 		// $.getMarkersForWraparound = function (){
-		if (options.projectionSettings.wraparoundMarkersType > 0 && options.projectionSettings.wraparound > 0) {
+		if (options.projectionSettings.wraparound > 0) {
 			const m = options.boardDimensions[0],
 				n = options.boardDimensions[1]
 
-
 			/*
 			m: boardDimensions[0] : 11
-			n: wraparound : 4
+			w: wraparound : 4
 			line: 0,...,(m-1)
 			=>
-			0,...,(n-1), (start line) n, ... , (n + m - 1) end line,  (n+m), ... , (2n + m - 1)
-
+			0,...,(w-1), (start line) w, ... , (w + m - 1) end line, (w+m), ... , (2w + m - 1)
 			*/
 
 			let board = []
-			for (let i = 1; i <= m; i++) {
-				let label = '─'//U+2500 Box Drawings Light Horizontal
-				if (options.projectionSettings.wraparoundMarkersType === 2) {
-					label = coordinateLabels(i - 1)
-				}
-				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound - 1) + ":" + label)
-				board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound + m) + ":" + label)
-			}
-			for (let i = 1; i <= n; i++) {
+			if ([1, 2, 4].indexOf(options.wraparoundMarkersType) > -1) {
+				let middles = options.wraparoundMarkersType > 1 ?
+					[Math.floor((m - 1) / 2) + 1, Math.ceil((m - 1) / 2) + 1,
+					Math.floor((n - 1) / 2) + 1, Math.ceil((n - 1) / 2) + 1]
+					: [-1, 99, -1, 99]
+				for (let i = 1; i <= m; i++) {
+					if (i < middles[0] || i > middles[1]) {
+						continue
+					}
+					let label = '─'//U+2500 Box Drawings Light Horizontal
 
-				let label = '│'//unicode too
-				if (options.projectionSettings.wraparoundMarkersType === 2) {
-					label = '' + i
+					board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound - 1) + ":" + label)
+					board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound + m) + ":" + label)
 				}
-				board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1 + i) + ":" + label)
-				board.push(coordinateLabels(wraparound + n) + coordinateLabels(wraparound - 1 + i) + ":" + label)
+				for (let i = 1; i <= n; i++) {
+					if (i < middles[2] || i > middles[3]) {
+						continue
+					}
+					let label = '│'//unicode too
+					board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1 + i) + ":" + label)
+					board.push(coordinateLabels(wraparound + n) + coordinateLabels(wraparound - 1 + i) + ":" + label)
+				}
 			}
-			//┘  ┌  └ ┐
-			board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound + n) + ":└")
-			board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound + n) + ":┘")
-			board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1) + ":┌")
-			board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound - 1) + ":┐")
-			$.markersForWraparound = board
+			if ([1, 2, 3].indexOf(options.wraparoundMarkersType) > -1) {
+				//┘  ┌  └ ┐
+				board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound + n) + ":└")
+				board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound + n) + ":┘")
+				board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1) + ":┌")
+				board.push(coordinateLabels(wraparound + m) + coordinateLabels(wraparound - 1) + ":┐")
+			}
+
+			if (options.coordinatesType > 0 && wraparound > 1) {
+				for (let i = 1; i < 2 * wraparound + m - 1; i++) {
+					let coordIndex = $.modX(-options.projectionSettings.offset[0] - wraparound + i)
+
+					//omit the I - historical coordinates for Go...
+					//I: 9th letter
+					if (coordIndex >= 8) {
+						coordIndex++
+					}
+					let label = coordinateLabels(coordIndex).toUpperCase()
+					board.push(coordinateLabels(i) + coordinateLabels(0) + ":" + label)
+					board.push(coordinateLabels(i) + coordinateLabels(2 * wraparound + n - 1) + ":" + label)
+				}
+
+				for (let i = 1; i < 2 * wraparound + n - 1; i++) {
+					let coordIndex = $.modY(n + options.projectionSettings.offset[1] + wraparound - i - 1)
+					let label = '' + (coordIndex + 1)
+					board.push(coordinateLabels(0) + coordinateLabels(i) + ":" + label)
+					board.push(coordinateLabels(2 * wraparound + m - 1) + coordinateLabels(i) + ":" + label)
+				}
+			}
+
+			$.wraparoundAndCoords = board
 		}
 	}
 	setUpMarkers()
@@ -229,7 +263,7 @@ function transformer(options
 			for (let i = nbVariations - 1; i > 0; i--)
 			//pile up in this order, as it's FILO and we want the last variation, which may contain a mode added by CGoboard to go last
 			{
-				let pathForLater = Object.assign({}, currentPath)//{...currentPath}
+				let pathForLater = { ...currentPath }//Object.assign({}, currentPath)
 				pathForLater[currentPath.m + 1] = i
 				pathForLater.m += 1
 
@@ -290,7 +324,7 @@ function transformer(options
 		let node = wrappedGame.first().node()
 			, pending = []
 			, currentPath = { m: 0 }
-			, cleanerRegEx = /^[a-zA-Z :0-9\-\(\r\n]+GoVariantsTransformer\)--[\r\n]*/
+			, cleanerRegEx = /^[a-zA-Z :0-9\-(\r\n]+GoVariantsTransformer\)--[\r\n]*/
 			, cleanComments = () => {
 				if (node.C !== undefined) {
 					node.C = node.C.replace(cleanerRegEx, '')
@@ -311,7 +345,7 @@ function transformer(options
 					labels = node.LB
 					if (!Array.isArray(labels))
 						labels = [labels]
-					labels = labels.filter(i => !$.markersForWraparound.includes(i))
+					labels = labels.filter(i => !$.wraparoundAndCoords.includes(i))
 					/* jshint loopfunc: true */
 					labels =
 						_uniqBy(
@@ -375,7 +409,7 @@ function transformer(options
 			is made on a point where the next node is AB or AW.  
 			*/
 			if (state.hasSiblings) {
-				let pathForParent = Object.assign({}, wrappedGame.path)
+				let pathForParent = { ...wrappedGame.path } //Object.assign({}, wrappedGame.path)
 				pathForParent.m--
 				delete pathForParent[pathForParent.m]
 				pathForParent = wrappedGame.pathTransform(pathForParent)
@@ -408,7 +442,7 @@ function transformer(options
 				node[isBlack ? 'B' : 'W'] = coords
 			}
 
-			;/*note: this next semicolon is needed! */[
+			;/*note: this next semicolon is needed! */[// eslint-disable-line no-extra-semi
 				//'CR',todo: add if not marking the move
 				'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
 					// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
@@ -527,8 +561,11 @@ function transformer(options
 			setUpMarkers()
 		}
 		node.SZ = "" + (options.boardDimensions[0] + 2 * options.projectionSettings.wraparound)//not sure how to make a rectangular goban!
+		//offset modulo
+		options.projectionSettings.offset[0] = modulo(options.projectionSettings.offset[0], options.boardDimensions[0])
+		options.projectionSettings.offset[1] = modulo(options.projectionSettings.offset[1], options.boardDimensions[1])
 		let setLabels = () => {
-			//node.LB = $.markersForWraparound
+			//node.LB = $.wraparoundAndCoords
 			let labels = []
 			if (node.LB !== undefined) {
 				labels = node.LB
@@ -550,7 +587,7 @@ function transformer(options
 					)
 			}
 
-			node.LB = $.markersForWraparound.concat(labels)
+			node.LB = $.wraparoundAndCoords.concat(labels)
 			if (node.LB.length === 0)
 				// delete node['LB']
 				delete node.LB
