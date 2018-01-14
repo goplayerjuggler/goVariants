@@ -26,7 +26,7 @@ display: none !important;
         <div class="masonry">
             <div class="item go-variants-extras">
                 Paste the SGF for a game of toroidal Go, aka t-Go, (e.g. from Little Golem) in the box, and then push the button to view the game!
-            <br/><label for={`${rootId}_sgfIn`}>T-Go SGF:</label>
+            <br /><label for={`${rootId}_sgfIn`}>T-Go SGF:</label>
                 <textarea id={`${rootId}_sgfIn`} rows="3"></textarea>
                 <input type="button" id={`${rootId}_goButton`} value="show board (from t-Go SGF)" />
 
@@ -115,7 +115,9 @@ display: none !important;
                     <option value="4">(→↓;1|1-11|十一): Latin/Chinese, top to bottom</option>
                 </select>
                 <br />
-                <input type="button" id={`${rootId}_updateButton`} value="update (from board)" style="display:none" />
+                <div id={`${rootId}_updateButtonDiv`}>
+                    <input type="button" id={`${rootId}_updateButton`} value="update (from board)" /> <b>Press this button after making moves on the board in order to get the wraparound/t-Go effects.</b>
+                </div>
             </div>
 
         </div>

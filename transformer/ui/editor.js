@@ -162,7 +162,7 @@ document.goVariantsEditor = function (editorOptions) {
 			};
 
 			getElementByIdSuffix('viewerControls').style.display = "inline-block"
-			getElementByIdSuffix('updateButton').style.display = "inline-block"
+			getElementByIdSuffix('updateButtonDiv').style.display = "inline-block"
 
 			if (showExtras) {
 				getElementByIdSuffix('transformedSgfFs').style.display = "inline-block"
