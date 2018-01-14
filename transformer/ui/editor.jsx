@@ -115,7 +115,7 @@ display: none !important;
                     <option value="4">(→↓;1|1-11|十一): Latin/Chinese, top to bottom</option>
                 </select>
                 <br />
-                <div id={`${rootId}_updateButtonDiv`}>
+                <div id={`${rootId}_updateButtonDiv`} style="display:none">
                     <input type="button" id={`${rootId}_updateButton`} value="update (from board)" /> <b>Press this button after making moves on the board in order to get the wraparound/t-Go effects.</b>
                 </div>
             </div>
