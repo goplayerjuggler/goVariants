@@ -8,13 +8,33 @@ Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game 
 -   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
     This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
 
-## Usage - simple scenario for HTML / Javascript developers
+## Usage - for HTML / Javascript developers
 
 This section just assumes basic knowledge of HTML and javascript.
 
-In order to review a t-Go game, this module provides a minified javascript file [dist/transformer.min.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/dist/transformer.min.js). This file is a minified, javascript version of the file [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js). If `transformer.min.js` is referenced by an HTML page, it creates a global function `go_variants_transformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject) in order to play through a t-Go game in a browser like Firefox.
+### Recommended method
+The recommended way to use this library is to add 3 script tags, to load an `editor` component, as in the online demo (see source code [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)).
 
-A simple sample, to be run locally, is [here](https://goplayerjuggler.github.io/goVariants/tree/master/transformer/samples/viewerLocal.html. 
+In order to open the page with a game preloaded, add the following HTML to the page (the SGF below is just given as an example):
+```html
+<div id="sgfViewer" class="go-variants-editor go-variants-hide-extras">
+            
+        <div style="display: none" class="go-variants-data">
+            ...T-Go SGF for the game to be displayed is pasted here
+        </div>
+```
+
+Notes:
+- the panels for loading SGF and creating a new game are hidden because of the CSS class `go-variants-hide-extras`.
+- the main `div` has `id="sgfViewer"` but it can have any id.
+- using this technique multiple t-Go games can be easily displayed on a single page.
+
+### Lower-level technique importing the transform function
+Alternatively, order to just tranform t-Go SGF, this module provides a minified javascript file [dist/transformer.min.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/dist/transformer.min.js). It is a minified, javascript version of the file [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js). If `transformer.min.js` is referenced by an HTML page, it creates a global function `go_variants_transformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject).
+
+A simple sample using this technique, to be run locally, is [here](https://goplayerjuggler.github.io/goVariants/tree/master/transformer/samples/viewerLocal.html). 
+
+
 
 See the API section for details or better yet, the code here on github. 
 
@@ -68,6 +88,7 @@ $ node transformOneFile path_to_input_sgf path_to_output_sgf
 ```
 
 ## Licence
+
 [0BSD (BSD Zero Clause License)](https://spdx.org/licenses/0BSD.html)
 
 ## API
@@ -76,14 +97,84 @@ $ node transformOneFile path_to_input_sgf path_to_output_sgf
 
 #### Table of Contents
 
--   [inverseTransform](#inversetransform)
--   [options](#options)
--   [transform](#transform)
 -   [transformer](#transformer)
+-   [translateCoordinates](#translatecoordinates)
+-   [options](#options)
+-   [inverseProjectOnFlat](#inverseprojectonflat)
+-   [projectOnFlat](#projectonflat)
+-   [coords2String](#coords2string)
+-   [inverseTransform](#inversetransform)
+-   [cleanLabels](#cleanlabels)
+-   [transform](#transform)
+
+### transformer
+
+**Parameters**
+
+-   `options` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
+    -   `options.addComments` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White. (optional, default `true`)
+    -   `options.addPasses` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers. (optional, default `true`)
+    -   `options.boardDimensions` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf). (optional, default `[11,11]`)
+    -   `options.coordinatesType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
+        1: (→↑;A|1-K|11): Western;
+        2: (→↑;A|1-L|11): Western, no “I”;
+        3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
+        4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom; (optional, default `1`)
+    -   `options.wraparoundMarkersType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
+        1: Full outline, using unicode Box Drawing symbols;
+        2: corners and middles, using unicode Box Drawing symbols;
+        3: just corners, using unicode Box Drawing symbols;
+        4: just middles, using unicode Box Drawing symbols; (optional, default `1`)
+    -   `options.projectionSettings` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
+        -   `options.projectionSettings.wraparound` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Number of lines to add for the “wraparound”. (optional, default `4`)
+        -   `options.projectionSettings.offset` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** Translation to apply to all moves. (optional, default `[0,0]`)
+    -   `options.transformToString` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When set to false, the output is an object (an instance of a Smartgame). (optional, default `true`)
+
+Returns **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** An object exposing functions for going back and forth between SGF for a standard viewer, and SGF for a game of toroidal Go
+
+### translateCoordinates
+
+Translate alpha coordinates into an array
+
+**Parameters**
+
+-   `alphaCoordinates`  
+-   `string`  alphaCoordinates
+
+Returns **any** array [x, y]
+
+### options
+
+### inverseProjectOnFlat
+
+This is the inverse function to the function “projectOnFlat” – at least it is when “multiple” is false.
+
+**Parameters**
+
+-   `points` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** The point or array of points projected onto the grid.
+-   `multiple`  
+
+Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** When the flag “multiple” is flagged, returns an array of points; otherwise returns a single point (i.e. an array of two integers).
+
+### projectOnFlat
+
+Projects a point on the t-Go board to the array of points on the standard grid/board.
+
+**Parameters**
+
+-   `p` **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** The point in the t-Go board to be projected on to the grid.
+
+Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** 
+
+### coords2String
+
+converts coordinates to a string
+
+**Parameters**
+
+-   `coords`  
 
 ### inverseTransform
-
-[transformer/src/transformer.js:272-426](https://github.com/goplayerjuggler/goVariants/blob/73331b376405d019fb4f08fc0766b9a0b6890c42/transformer/src/transformer.js#L272-L426 "Source code on GitHub")
 
 Apart from a few details, this is an inverse of the transform function.
 
@@ -92,13 +183,13 @@ Apart from a few details, this is an inverse of the transform function.
 -   `wrappedGame` **(smartgame | [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String))** 
 -   `smartgame` **smartgame** 
 
-### options
+### cleanLabels
 
-[transformer/src/transformer.js:74-74](https://github.com/goplayerjuggler/goVariants/blob/73331b376405d019fb4f08fc0766b9a0b6890c42/transformer/src/transformer.js#L74-L74 "Source code on GitHub")
+Function to:
+	\- remove the “border” (unicode symbols added by the transform to indicate where the wraparound area meets the main grid).
+	\- remove CM (colour map) and CT (colour table) which are nonstandard SGF added by CGoboard for background colour (could be interesting to use this feature later on).
 
 ### transform
-
-[transformer/src/transformer.js:438-643](https://github.com/goplayerjuggler/goVariants/blob/73331b376405d019fb4f08fc0766b9a0b6890c42/transformer/src/transformer.js#L438-L643 "Source code on GitHub")
 
 Main function; converts SGF for a Go variant (so far, just toroidal Go or t-Go).
 
@@ -110,22 +201,3 @@ Main function; converts SGF for a Go variant (so far, just toroidal Go or t-Go).
 -   `smartgamer` **any** 
 
 Returns **([string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String) \| [object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object))** SGF that can be viewed in a standard SGF viewer. (See `options.transformToString` for the data type of the value returned.)
-
-### transformer
-
-[transformer/src/transformer.js:20-647](https://github.com/goplayerjuggler/goVariants/blob/73331b376405d019fb4f08fc0766b9a0b6890c42/transformer/src/transformer.js#L20-L647 "Source code on GitHub")
-
-**Parameters**
-
--   `options` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
-    -   `options.addComments` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White. (optional, default `true`)
-    -   `options.wraparoundMarkersType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: no symbols are added to indicate the part of the wraparound area that’s next to the main grid;
-        1: symbols are added using unicode symbols (from “Box Drawings”);
-        2: symbols show t-Go coordinates. (optional, default `2`)
-    -   `options.addPasses` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers. (optional, default `true`)
-    -   `options.boardDimensions` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf). (optional, default `[11,11]`)
-    -   `options.projectionSettings` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
-        -   `options.projectionSettings.wraparound` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Number of lines to add for the “wraparound”. (optional, default `4`)
-        -   `options.projectionSettings.offset` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** Translation to apply to all moves. (optional, default `[0,0]`)
-    -   `options.transformToString` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When set to false, the output is an object (an instance of a Smartgame). (optional, default `true`)
--   `variantSgf` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** SGF for a game.
