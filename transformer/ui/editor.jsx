@@ -57,7 +57,7 @@ display: none !important;
                             <input type="button" value="↑" />
                         </td>
                         <td rowspan="4" style="vertical-align: middle">“Panning”
-                <p> Use the buttons to the left to move the “centre” of the board.</p>
+                <p> Use the buttons to the left to “pan” the board.</p>
                         </td>
                     </tr>
                     <tr>
@@ -109,9 +109,10 @@ display: none !important;
                 <label for={`${rootId}_coordinateSelect`}>Type of coordinates:</label>
                 <select id={`${rootId}_coordinateSelect`}>
                     <option value="0">None</option>
-                    {/* <option value="2">Chinese</option>
-                <option value="3">Japanese</option> todo */}
-                    <option value="1" selected>Western (A1; BL)</option>
+                    <option value="1" selected>(→↑;A|1-K|11): Western</option>
+                    <option value="2">(→↑;A|1-L|11): Western, no “I”</option>
+                    <option value="3">(→↓;1|1-11|11): Latin/Latin, top to bottom</option>
+                    <option value="4">(→↓;1|1-11|十一): Latin/Chinese, top to bottom</option>
                 </select>
                 <br />
                 <input type="button" id={`${rootId}_updateButton`} value="update (from board)" style="display:none" />

@@ -9,10 +9,10 @@
  * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
  * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
  * @param {number} [options.coordinatesType = 1] 0: none;
- * 1: Bottom to top & left to right; western numbers;
- * 2: Top to  & left to right; western numbers (not yet implemented);
- * 3: Top to bottom & left to right; first coordinate is in Japanese characters (not yet implemented);
- * 4: Top to bottom & left to right; first coordinate is in Chinese characters (not yet implemented);
+ * 1: (→↑;A|1-K|11): Western;
+ * 2: (→↑;A|1-L|11): Western, no “I”;
+ * 3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
+ * 4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom;
  * @param {number} [options.wraparoundMarkersType = 1] 0: none;
  * 1: Full outline, using unicode Box Drawing symbols;
  * 2: corners and middles, using unicode Box Drawing symbols;
@@ -215,21 +215,51 @@ function transformer(options
 
 			if (options.coordinatesType > 0 && wraparound > 1) {
 				for (let i = 1; i < 2 * wraparound + m - 1; i++) {
+
 					let coordIndex = $.modX(-options.projectionSettings.offset[0] - wraparound + i)
 
-					//omit the I - historical coordinates for Go...
-					//I: 9th letter
-					if (coordIndex >= 8) {
+					if (options.coordinatesType === 2 && coordIndex >= 8) {
+						//omit the I - historical coordinates for Go...
+						//I: 9th letter
 						coordIndex++
 					}
-					let label = coordinateLabels(coordIndex).toUpperCase()
+					let label =
+						options.coordinatesType < 3
+							? coordinateLabels(coordIndex).toUpperCase()
+							: '' + (coordIndex + 1)
 					board.push(coordinateLabels(i) + coordinateLabels(0) + ":" + label)
 					board.push(coordinateLabels(i) + coordinateLabels(2 * wraparound + n - 1) + ":" + label)
 				}
-
+				let cjkNumbers = '一二三四五六七八九'
 				for (let i = 1; i < 2 * wraparound + n - 1; i++) {
-					let coordIndex = $.modY(n + options.projectionSettings.offset[1] + wraparound - i - 1)
-					let label = '' + (coordIndex + 1)
+					/*
+					0		-w
+					...
+					w-1	-1
+					w		0
+					...
+					w + n -1
+					
+					*/
+					let coordIndex =
+						options.coordinatesType < 3
+							? $.modY(n + options.projectionSettings.offset[1] + wraparound - i - 1)
+							: $.modY(i - wraparound - options.projectionSettings.offset[1])
+					let label = ''
+					switch (options.coordinatesType) {
+						case 1:
+						case 2:
+						case 3:
+							label = '' + (coordIndex + 1)
+							break
+						case 4:
+							label = modulo(coordIndex, 10) === 9 ? '' : cjkNumbers[modulo(coordIndex, 10)]
+
+							if (coordIndex > 8) {
+								label = (coordIndex > 18 ? cjkNumbers[Math.floor((coordIndex + 1) / 10) - 1] : '') + '十' + label
+							}
+							break
+					}
 					board.push(coordinateLabels(0) + coordinateLabels(i) + ":" + label)
 					board.push(coordinateLabels(2 * wraparound + m - 1) + coordinateLabels(i) + ":" + label)
 				}

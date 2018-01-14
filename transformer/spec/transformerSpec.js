@@ -17,22 +17,27 @@ describe("transformer", function () {
 		it("has borders, for default settings", function () {
 			var transformer = require('../src/transformer')()
 			//assume projection 11x11 to 19x19
-			expect(transformer.options.projectionSettings.wraparoundMarkersType).toEqual(2)
+			expect(transformer.options.wraparoundMarkersType).toEqual(1)
 			expect(transformer.options.boardDimensions).toEqual([11, 11])
-			expect(transformer.options.projectionSettings).toEqual({ wraparound: 4, offset: [0, 0], wraparoundMarkersType:2 })
-			transformer = require('../src/transformer')({ projectionSettings:{wraparoundMarkersType: 1} })
+			expect(transformer.options.projectionSettings).toEqual({ wraparound: 4, offset: [0, 0] })
+			transformer = require('../src/transformer')({ wraparoundMarkersType: 1, coordinatesType: 0 })
 
 
-			expect(transformer.markersForWraparound.sort())
+			expect(transformer.wraparoundAndCoords.sort())
 				.toEqual(['de:│', 'pe:│', 'ed:─', 'ep:─', 'df:│', 'pf:│', 'fd:─', 'fp:─',
 					'dg:│', 'pg:│', 'gd:─', 'gp:─', 'dh:│', 'ph:│', 'hd:─', 'hp:─', 'di:│', 'pi:│',
 					'id:─', 'ip:─', 'dj:│', 'pj:│', 'jd:─', 'jp:─', 'dk:│', 'pk:│', 'kd:─', 'kp:─',
 					'dl:│', 'pl:│', 'ld:─', 'lp:─', 'dm:│', 'pm:│', 'md:─', 'mp:─', 'dn:│', 'pn:│',
 					'nd:─', 'np:─', 'do:│', 'po:│', 'od:─', 'op:─', 'dp:└', 'pp:┘', 'dd:┌', 'pd:┐'].sort())
 
-			transformer = require('../src/transformer')({ projectionSettings:{wraparoundMarkersType: 0} })
-			expect(transformer.markersForWraparound)
+			transformer = require('../src/transformer')({ wraparoundMarkersType: 0, coordinatesType: 0 })
+			expect(transformer.wraparoundAndCoords)
 				.toEqual([])
+			transformer = require('../src/transformer')({ wraparoundMarkersType: 0, coordinatesType: 4 })
+			expect(transformer.wraparoundAndCoords)
+				.toContain('ae:一')
+				expect(transformer.wraparoundAndCoords)
+				.toContain('ao:十一')
 		})
 
 	})
@@ -191,11 +196,11 @@ SO[foo]
 ;B[ad];W[bd];B[bc];W[ac];B[bb]
 ;W[aa];B[ab];W[dd])`
 
-			let options = { projectionSettings:{wraparoundMarkersType: 0}, addComments: false }, transformedSgf = transform(sgf, options)
+			let options = { wraparoundMarkersType: 0, coordinatesType: 0, addComments: false }, transformedSgf = transform(sgf, options)
 
 			expect(transformedSgf).toEqual(`(;FF[4]CA[UTF-8]GM[1]SZ[12]AP[go-variants-transformer]SO[foo (source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application)];B[]AB[ad][ah][al][ed][eh][el][id][ih][il]CR[ad][ah][al][ed][eh][el][id][ih][il]MN[1];W[]AW[bd][bh][bl][fd][fh][fl][jd][jh][jl]CR[bd][bh][bl][fd][fh][fl][jd][jh][jl]MN[2];B[]AB[bc][bg][bk][fc][fg][fk][jc][jg][jk]CR[bc][bg][bk][fc][fg][fk][jc][jg][jk]MN[3];W[]AW[ac][ag][ak][ec][eg][ek][ic][ig][ik]CR[ac][ag][ak][ec][eg][ek][ic][ig][ik]MN[4];B[]AB[bb][bf][bj][fb][ff][fj][jb][jf][jj]CR[bb][bf][bj][fb][ff][fj][jb][jf][jj]MN[5];W[]AW[aa][ae][ai][ea][ee][ei][ia][ie][ii]CR[aa][ae][ai][ea][ee][ei][ia][ie][ii]MN[6];B[]AB[ab][af][aj][eb][ef][ej][ib][if][ij]CR[ab][af][aj][eb][ef][ej][ib][if][ij]MN[7];W[]AW[dd][dh][dl][hd][hh][hl][ld][lh][ll]CR[dd][dh][dl][hd][hh][hl][ld][lh][ll]AE[ad][ah][al][ed][eh][el][id][ih][il]MN[8])`)
 
-			let transformer = require('../src/transformer')(options)
+			let transformer = require('../src/transformer')({ boardDimensions: [4, 4], ...options })
 			let smartGame = require('smartgame')
 				, inverseTransformedSgf = transformer.inverseTransform(transformedSgf, smartGame)
 			expect(inverseTransformedSgf).toEqual('(;FF[4]CA[UTF-8]GM[1]SZ[4]AP[go-variants-transformer]SO[foo];MN[1]B[ad];MN[2]W[bd];MN[3]B[bc];MN[4]W[ac];MN[5]B[bb];MN[6]W[aa];MN[7]B[ab];MN[8]W[dd])')
@@ -242,7 +247,7 @@ SO[foo]
 			let wrappedGame = require('./testInverseTransform.js')
 			wrappedGame.first()
 			expect(wrappedGame.game.sequences.length).toEqual(3)
-			expect (require('./testInverseTransform2.js').game.sequences[1].sequences.length).toEqual(3)
+			expect(require('./testInverseTransform2.js').game.sequences[1].sequences.length).toEqual(3)
 		})
 	})
 })

@@ -45,7 +45,7 @@ document.goVariantsEditor = function (editorOptions) {
 		})
 
 		let select = getElementByIdSuffix('sizeSelect')
-		for (let index = 4; index < 21; index++) {
+		for (let index = 4; index < 20; index++) {
 			const option = document.createElement('option')
 			option.value = '' + index
 			option.appendChild(document.createTextNode(index))
