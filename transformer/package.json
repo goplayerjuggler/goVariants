@@ -14,8 +14,8 @@
     "go variants",
     "SGF"
   ],
-  "author": "goplayerjuggler",
-  "license": "0BSD",
+  "author": "Malcolm Schonfield",
+  "license": "MIT",
   "dependencies": {
     "go-variants-engine": "file:../engine",
     "lodash": "^4.17.4",

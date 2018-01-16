@@ -37,12 +37,6 @@ document.goVariantsEditor = function (editorOptions) {
 		// 	el.style.display = 'inline-block'
 		// })
 
-		getElementByIdSuffix('goButton').addEventListener('click', function () {
-			showBoard()
-		})
-		getElementByIdSuffix('goLgButton').addEventListener('click', function () {
-			getLittleGolemSgfAndShowBoard()
-		})
 
 		let select = getElementByIdSuffix('sizeSelect')
 		for (let index = 4; index < 20; index++) {
@@ -52,19 +46,27 @@ document.goVariantsEditor = function (editorOptions) {
 			select.appendChild(option)
 		}
 
-		getElementByIdSuffix('newButton').addEventListener('click', function () {
-			getElementByIdSuffix("sgfIn").value = `(;GM[1]FF[4]AP[go-variants-transformer]SZ[${getElementByIdSuffix('sizeSelect').value}])`
-			showBoard()
-		})
 	} else {
 		[].forEach.call(document.querySelectorAll(`#${rootId} .go-variants-extras`), function (el) {
 			//el.parentNode.removeChild(el)
 			el.style.display = 'none'
 		})
 	}
+	
+	getElementByIdSuffix('goButton').addEventListener('click', function () {
+		showBoard()
+	})
+	getElementByIdSuffix('goLgButton').addEventListener('click', function () {
+		getLittleGolemSgfAndShowBoard()
+	})
+	getElementByIdSuffix('newButton').addEventListener('click', function () {
+		getElementByIdSuffix("sgfIn").value = `(;GM[1]FF[4]AP[go-variants-transformer]SZ[${getElementByIdSuffix('sizeSelect').value}])`
+		showBoard()
+	})
 
 	getElementByIdSuffix('viewerControls').style.display = "none"
 
+	//startup
 	var inputSgfNode = document.querySelectorAll(
 		// `#${rootId} .go-variants-data:first-of-type`)
 		`#${rootId} .go-variants-data`)
@@ -72,6 +74,22 @@ document.goVariantsEditor = function (editorOptions) {
 		getElementByIdSuffix("sgfIn").value = inputSgfNode[0].innerText
 
 		showBoard()
+	}
+	else {
+		let params = new URLSearchParams((new URL(window.location)).search.slice(1))
+		if (params.has('sgf')) {
+			let sgf = params.get('sgf')
+			if (looksLikeSgf(sgf)) {
+				getElementByIdSuffix("sgfIn").value = sgf
+				showBoard()
+			}
+		} else if (params.has('littlegolemid')) {
+			let id = params.get('littlegolemid')
+			if (/^\d+$/g.test(id)) {
+				getElementByIdSuffix('littleGolemId').value = id
+				getLittleGolemSgfAndShowBoard()
+			}
+		}
 	}
 
 
@@ -175,7 +193,15 @@ document.goVariantsEditor = function (editorOptions) {
 		}
 
 	}
+	function looksLikeSgf(sgf, size) {
+		let result = sgf.startsWith('(')
+			// && sgf.indexOf('GM[1]') > 0 //SGF LG doesn't!
 
+		if (size) {
+			return result && sgf.indexOf(`SZ[${size}]` > 3)
+		}
+		return result && /SZ\[\d+]/.test(sgf)
+	}
 	function updateVariantSgf() {
 		var sgf = GoBoardApi.Save_Sgf(viewer.oGameTree)
 		var moveReference = GoBoardApi.Get_MoveReference(viewer.oGameTree, false)
@@ -189,12 +215,15 @@ document.goVariantsEditor = function (editorOptions) {
 	function getLittleGolemSgfAndShowBoard() {
 		var gameId = getElementByIdSuffix('littleGolemId').value
 		if (gameId === '') {
-			gameId = '1860795'
-			alert('using a test ID 1860795')
+			//gameId = '1860795'
+			alert('enter the ID of a game from LittleGolem, e.g. “1860795”')
+			return
 		}
+		gameId = gameId.trim()
+
 		var proxyurl = "https://cors-anywhere.herokuapp.com/"
 		var url = `http://littlegolem.net/servlet/sgf/${gameId}/game${gameId}.sgf`
-		if (!gameId.match(/\d+/g)) {
+		if (!/^\d+$/g.test(gameId)) {
 			alert('invalid ID')
 			return
 		}
@@ -202,7 +231,7 @@ document.goVariantsEditor = function (editorOptions) {
 		var myHeaders = new Headers({
 			"Content-Type": "application/sgf"
 		});
-		const failMsg =  'load from littel Golem failed'
+		const failMsg = 'load from littel Golem failed'
 		fetch(proxyurl + url, { headers: myHeaders }).then(
 			function (response) {
 				if (response.status !== 200) {
@@ -214,17 +243,17 @@ document.goVariantsEditor = function (editorOptions) {
 
 				// Examine the text in the response
 				response.text().then(function (sgf) {
-					if (!sgf.startsWith('(;FF[4]') || !sgf.indexOf('SZ[11]' > 3)) {
+					if (!looksLikeSgf(sgf,11 /*LG is always 11x11*/  )) {
 						console.log('invalid SGF. Received:' + sgf)
 
 						getElementByIdSuffix('goLgMsg').innerText = failMsg
 						return
 					}
 					sgf = sgf.replace('SZ[11]', `SZ[11]SO[http://littlegolem.net/jsp/game/game.jsp?gid=${gameId}`)
-					
+
 					getElementByIdSuffix("sgfIn").value = sgf
 					showBoard()
-					
+
 					getElementByIdSuffix('goLgMsg').innerText = 'game loaded from Little Golem'
 				});
 			}
@@ -232,6 +261,8 @@ document.goVariantsEditor = function (editorOptions) {
 			console.log('Fetch Error :-S', err);
 		});
 	}
+
+
 
 
 }

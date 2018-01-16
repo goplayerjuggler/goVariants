@@ -3,7 +3,7 @@
 */
 
 /**
- * 
+ * Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
  * @param {object} [options=] Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
  * @param {boolean} [options.addComments = true] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
  * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.

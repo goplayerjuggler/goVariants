@@ -1,6 +1,20 @@
 # Go-Variants-Transformer
 
-Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game records or game commentaries, for a Go variant, into SGF that works in SGF viewers for standard Go.
+This module provides tools for viewing and editing game records or game commentaries, for a Go variant. At present, the only Go variant that is handled is [Toroidal Go](http://senseis.xmp.net/?ToroidalGo). The code is bundled into minified javascript files so as to work on most modern browsers.
+
+This module builds on existing software for viewing/editing [Go](https://en.wikipedia.org/wiki/Go_(game)) games with standard rules. It works by transforming [SGF](http://www.red-bean.com/sgf/index.html) for the Go variant into SGF that works in SGF viewers for standard Go. 
+
+The two main parts of this module are:
+* `src/transformer.js`: Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
+* `ui/editor.js` and `ui/editor.jsx`: provide a viewer/editor by combining `transformer.js` and the Web Go Board from the [GoProject](https://github.com/IlyaKirillov/GoProject) library.
+
+## Libraries used
+* SGF viewer:
+
+    In the initial versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used, but in order to work with variations, the Web Go board in the [GoProject](https://github.com/IlyaKirillov/GoProject) library is now used instead.
+* For parsing and manipulating SGF data:
+    
+    npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
 
 ## Online samples
 
@@ -12,33 +26,74 @@ Tool for transforming [SGF format](http://www.red-bean.com/sgf/index.html) game 
 
 This section just assumes basic knowledge of HTML and javascript.
 
-### Recommended method
-The recommended way to use this library is to add 3 script tags, to load an `editor` component, as in the online demo (see source code [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)).
+### Recommended method: via the `editor` component
+The recommended way to use this library via an `editor` component, as in the [online demo](https://goplayerjuggler.github.io/goVariants/tGoEditor.html). The source code is here: [tGoEditor.html](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html).
+#### Steps
+1. Three script tags should be added inside the html `head`:
+    ```html
+    <head>
+        ...
+        <script type="text/javascript" language="JavaScript" src="
+        https://cdn.rawgit.com/IlyaKirillov/GoProject/c20084d83c01b394cbf2f19b92b114feebb7fb8c/WebBuilds/goboardmin.js"></script>
+        <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/9ec632af7c8c2b9a03d4d853ddaca977c3135771/transformer/utils/no-react.js"></script>
+        <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/<versionId>/transformer/dist/ui/editor.min.js"></script>
+    </head>
+    ``` 
+    The `versionId` to use for the last script can be copied from `tGoEditor.html`. 
 
-In order to open the page with a game preloaded, add the following HTML to the page (the SGF below is just given as an example):
-```html
-<div id="sgfViewer" class="go-variants-editor go-variants-hide-extras">
-            
+1. In order to open the page with a game preloaded, add the following HTML to the page, inside the `body`:
+    ```html
+    <div id="sgfViewer" class="go-variants-editor">
         <div style="display: none" class="go-variants-data">
-            ...T-Go SGF for the game to be displayed is pasted here
+            ...T-Go SGF for the game to be displayed is inserted here
         </div>
-```
+    </div>
+    ```
+    Alternatively, in order to display the editor component without a game preloaded, just leave out the inner `div` with the class `go-variants-data`.
 
-Notes:
-- the panels for loading SGF and creating a new game are hidden because of the CSS class `go-variants-hide-extras`.
-- the main `div` has `id="sgfViewer"` but it can have any id.
-- using this technique multiple t-Go games can be easily displayed on a single page.
+#### Displaying a specific game
+The component can be loaded with a specific game displayed as follows. 
+1. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
+1. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
+1. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
+#### Notes:
+1. Some parts of the editor component can be hidden by adding the CSS class `go-variants-hide-extras` to the main `div`. 
+    ```html
+    <div id="sgfViewer" class="go-variants-editor go-variants-hide-extras">
+    ```
+
+    The sections that are hidden when `go-variants-hide-extras` is added are:
+    - the “t-Go SGF” section 
+    - the “load from LittleGolem” section
+    - the “new game” section
+    - the “transformed SGF” section
+1. An `id` needs to be provided for the main `div`; there are no specific constraints on the value.
+1. multiple instances of the component can be used by creating several main `div`s.
+    ```html
+    <div id="game1" class="go-variants-editor go-variants-hide-extras">
+    ...
+    </div>
+    <div id="game2" class="go-variants-editor go-variants-hide-extras">
+    ...
+    </div>
+    ```
+ 
 
 ### Lower-level technique importing the transform function
-Alternatively, order to just tranform t-Go SGF, this module provides a minified javascript file [dist/transformer.min.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/dist/transformer.min.js). It is a minified, javascript version of the file [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js). If `transformer.min.js` is referenced by an HTML page, it creates a global function `go_variants_transformer` which can be used to transform SGF as described in the previous section. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject).
+Alternatively, order to just tranform t-Go SGF, the main function defined in [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js) can be used. 
+
+This function can be loaded in an html page by adding a `script` tag in order to load the minified version `transformer.min.js` as follows (the version ID has to be set according to some git version id for the file).
+```html
+<script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/<versionId>/transformer/dist/src/transformer.min.js"></script>
+```
+
+ If `transformer.min.js` is referenced by an HTML page, it creates a global function `go_variants_transformer`. It can (fairly easily) combined with a javascript library for viewing Go games like [WGo.js](https://github.com/waltheri/wgo.js) or [GoProject](https://github.com/IlyaKirillov/GoProject).
 
 A simple sample using this technique, to be run locally, is [here](https://goplayerjuggler.github.io/goVariants/tree/master/transformer/samples/viewerLocal.html). 
 
+See the API section for details or better yet, the code on github. 
 
-
-See the API section for details or better yet, the code here on github. 
-
-## Usage for node developers
+## Usage, for node developers
 
 This section is for those who are familiar or are getting familiar with node.js and related tools. As this module is built using node.js, working on a system with a recent version of node / npm is probably necessary.
 
@@ -89,7 +144,7 @@ $ node transformOneFile path_to_input_sgf path_to_output_sgf
 
 ## Licence
 
-[0BSD (BSD Zero Clause License)](https://spdx.org/licenses/0BSD.html)
+[MIT](https://spdx.org/licenses/MIT.html)
 
 ## API
 

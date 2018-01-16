@@ -59,7 +59,6 @@ typings/
 .env
 
 # go variants custom ignores start here
-viewer/
 */node_modules/
 transformer/lib/
 transformer/samples/.*_transformed.sgf

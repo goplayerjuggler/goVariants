@@ -22,6 +22,11 @@ $ gulp test
 ```
 
 Disclaimer: this installation procedure has not been tested.
+
+## Licence
+
+[MIT](https://spdx.org/licenses/MIT.html)
+
 ## API
 See the unit tests for some sample calls.
 

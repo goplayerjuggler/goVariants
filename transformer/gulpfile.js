@@ -4,8 +4,8 @@ const gulp = require('gulp'),
   eslint = require('gulp-eslint'),
 
   jasmine = require('gulp-jasmine'),
-  
- gulpsync = require('gulp-sync')(gulp)
+
+  gulpsync = require('gulp-sync')(gulp)
 
 
 // define the default task and add the watch task to it
@@ -62,13 +62,14 @@ let uglify = require('gulp-uglify');
 let sourcemaps = require('gulp-sourcemaps');
 let gutil = require('gulp-util');
 let babelify = require("babelify");
-let babel = require('gulp-babel');
+let babel = require('gulp-babel')
+
 
 function bundler(fileName, standalone) {
   return () => {
     let options = { debug: true }
     if (standalone) {
-      options.standalone =`go_variants_${standalone}`
+      options.standalone = `go_variants_${standalone}`
     }
     let b = browserify(`${fileName}.js`, options).transform(babelify);
     return b
@@ -76,8 +77,8 @@ function bundler(fileName, standalone) {
       .pipe(source(`${fileName}.min.js`))
       .pipe(buffer())
       .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(babel())
-      .pipe(uglify())
+      .pipe(gutil.env.env === 'prod' ? babel() : gutil.noop())
+      .pipe(gutil.env.env === 'prod' ? uglify() : gutil.noop())
       .on('error', gutil.log)
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('./dist'));
@@ -89,3 +90,11 @@ gulp.task('bundle2', bundler('src/transformer', 'transformer'));
 gulp.task('bundle3', bundler('ui/editor', 'editor'));
 
 gulp.task('bundles', gulpsync.sync(['bundle1', 'bundle2', 'bundle3']))
+
+gulp.task('set-dev-node-env', function () {
+  return process.env.NODE_ENV = 'development'
+})
+
+gulp.task('set-prod-node-env', function () {
+  return process.env.NODE_ENV = 'production'
+})

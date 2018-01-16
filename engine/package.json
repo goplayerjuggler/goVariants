@@ -13,8 +13,8 @@
     "toroidal",
     "go variants"
   ],
-  "author": "goplayerjuggler",
-  "license": "0BSD",
+  "author": "Malcolm Schonfield",
+  "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.4"
   },
