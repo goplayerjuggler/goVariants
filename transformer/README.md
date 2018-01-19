@@ -8,6 +8,14 @@ The two main parts of this module are:
 * `src/transformer.js`: Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
 * `ui/editor.js` and `ui/editor.jsx`: provide a viewer/editor by combining `transformer.js` and the Web Go Board from the [GoProject](https://github.com/IlyaKirillov/GoProject) library.
 
+
+## Online samples
+
+-   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html) (the source code is [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)). 
+-   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
+    This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
+
+
 ## Libraries used
 * SGF viewer:
 
@@ -15,12 +23,6 @@ The two main parts of this module are:
 * For parsing and manipulating SGF data:
     
     npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
-
-## Online samples
-
--   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html) (the source code is [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)). 
--   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
-    This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
 
 ## Usage - for HTML / Javascript developers
 
