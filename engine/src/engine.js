@@ -113,7 +113,7 @@ module.exports = function (options) {
 		if (myIndexOf($.board.whiteStones, point) >= 0) return 'w'
 		return 'e'
 	}
-	$.board.chainHasLiberty = function (startPoint, chainColour, stopColour) {
+	function chainHasLiberty (startPoint, chainColour, stopColour) {
 		if (stopColour === undefined)
 			stopColour = 'e'//by default, stop getting the chain when there is a liberty.
 		if (chainColour === null)
@@ -144,6 +144,7 @@ module.exports = function (options) {
 		return chain;
 	}
 
+	$.board.chainHasLiberty = chainHasLiberty 
 	$.board.getComponent = function (startPoint, deadStones) {
 		//Use for scoring.
 		//It returns all points of the same colour (B, W or E) that are linked to the startPoint.
