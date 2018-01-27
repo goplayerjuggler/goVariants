@@ -7,6 +7,14 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "gulp test engine",
+            "args": ["test"],
+            "program": "${workspaceFolder}/engine/node_modules/gulp/bin/gulp.js",
+            "cwd": "${workspaceFolder}/engine"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "scrap",
             "program": "${workspaceFolder}/transformer\\debugScrap.js"
         },
