@@ -64,3 +64,4 @@ samples/*._transformed.sgf
 debugScrap*
 dist/*.map
 package-lock.json
+yarn.lock
