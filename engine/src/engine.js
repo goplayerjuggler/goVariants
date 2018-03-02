@@ -48,10 +48,11 @@ module.exports = function (options) {
 	// superko: false
 	// }
 	let $ = {}
-		, rules = options.rules || {
+	$.rules = {
 			suicide: true,
-			superko: false /*⇒todo: enforce when true?*/,
-			komi: 7.5
+			// superko: false /*⇒todo: enforce when true?*/,
+			komi: 7.5,
+			... options.rules
 		}
 
 	// $.moves = options.moves || []
@@ -233,21 +234,25 @@ module.exports = function (options) {
 					processPoint(point, colour)
 					return colour === deadColour ? 'e' : colour
 				}
-			processPoint(deadColour, deadStone)
+			processPoint(deadStone, deadColour)
 			$.board.chainHasLiberty(deadStone, 'e', '', getColourForDeadComponent)
 		}
 
-		for (let i = 0; i < options.boardDimensions[0]; i++) {
+		for (let i = 0,exitLoop = false; i < options.boardDimensions[0]; i++) {
+			if (exitLoop) {
+				break
+			}
 			for (let j = 0; j < options.boardDimensions[1]; j++) {
 				if (result.blackEmpty.length
 					+ result.whiteEmpty.length
 					+ result.dame.length
 					+ result.blackAlive.length
 					+ result.whiteAlive.length
-					+ result.blackDead.length
-					+ result.whiteDead.length
+					// + result.blackDead.length
+					// + result.whiteDead.length
 					=== options.boardDimensions[0] * options.boardDimensions[1]
 				) {
+					exitLoop = true
 					break
 				}
 				const point = [i, j], colour = $.board.getColour(point)
@@ -338,8 +343,8 @@ module.exports = function (options) {
 		//totals
 		result.totalBlackDead = result.blackDead.length
 		result.totalWhiteDead = result.whiteDead.length
-		result.totalBlackTerritory = result.blackDead.length
-		result.totalWhiteTerritory = result.whiteDead.length
+		result.totalBlackTerritory = result.blackEmpty.length
+		result.totalWhiteTerritory = result.whiteEmpty.length
 
 
 		//todo: implement other rulesets. For now, just do territory + prisoners (Japanese style counting)
@@ -351,7 +356,7 @@ module.exports = function (options) {
 			result.totalBlackDead
 			+ result.totalBlackCaptured
 			+ result.totalWhiteTerritory
-			+ rules.komi
+			+ $.rules.komi
 		let r = result.blackScore - result.whiteScore
 		if (r === 0) result.RE = '0'
 		else if (r > 0) result.RE = 'B+' + r
@@ -416,7 +421,7 @@ module.exports = function (options) {
 		if (removed.length === 0) {
 			let s = $.board.chainHasLiberty(point, playerColour)
 			if (s !== true) {
-				if (rules.suicide) {
+				if ($.rules.suicide) {
 					$.removeChain(s, playerColour)
 					suicide = s
 				}
