@@ -1,6 +1,6 @@
 # Go-Variants-Transformer
 
-This module provides tools for viewing and editing game records or game commentaries, for a Go variant. At present, the only Go variant that is handled is [Toroidal Go](http://senseis.xmp.net/?ToroidalGo). The code is bundled into minified javascript files so as to work on most modern browsers.
+This module provides tools for viewing and editing game records or game commentaries, for a Go variant. At present, the only Go variant that is handled is [Toroidal Go](http://senseis.xmp.net/?ToroidalGo). The project is mostly written in ECMAScript;  minified javascript bundles are provided which should work on modern browsers.
 
 This module builds on existing software for viewing/editing [Go](https://en.wikipedia.org/wiki/Go_(game)) games with standard rules. It works by transforming [SGF](http://www.red-bean.com/sgf/index.html) for the Go variant into SGF that works in SGF viewers for standard Go. 
 

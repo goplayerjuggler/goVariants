@@ -1,8 +1,13 @@
 # Go-Variants-Engine
-This module provides a Go engine for standard [Go](https://en.wikipedia.org/wiki/Go_(game)) and toroidal Go (t-Go). It may in the future handle Go on other graphs that are locally like Go like cylinders, twisted toroids, Klein surfaces, … 
+This module provides a Go engine for standard [Go](https://en.wikipedia.org/wiki/Go_(game)) and [Toroidal Go](http://senseis.xmp.net/?ToroidalGo). It may in the future handle Go on other graphs that are locally like Go like cylinders, twisted toroids, Klein surfaces, … 
 
-At present the primary function of the module is to handle the mechanics of making a move on a board. It counts liberties, and determines which if any stones are removed as a consequence of the move. Later on [superkos](https://senseis.xmp.net/?Superko) and [scoring](https://senseis.xmp.net/?Scoring) may also be implemented. 
+At present it handles:
+* the mechanics of playing a move (counting liberties, removing chains with zero liberties…)
+* [Scoring](https://senseis.xmp.net/?Scoring)
 
+[Ko](https://senseis.xmp.net/?Ko) and [Superko](https://senseis.xmp.net/?Superko) have not been implemented. 
+
+This project is mostly written in ECMAScript.
 
 ## Usage
 This section is for those who are familiar, or are getting familiar, with node.js and related tools. This module is built using node.js. Working on a system with a recent version of node / npm is probably necessary.

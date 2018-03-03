@@ -17,7 +17,7 @@
   "author": "Malcolm Schonfield",
   "license": "MIT",
   "dependencies": {
-    "go-variants-engine": "file:../engine",
+    "go-variants-engine": "file:../engine/",
     "lodash": "^4.17.4",
     "smartgame": "^0.1.5",
     "smartgamer": "^0.1.5"

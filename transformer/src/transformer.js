@@ -1,7 +1,6 @@
 ﻿/* globals module: false, require: false
 
 */
-
 /**
  * Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
  * @param {object} [options=] Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
@@ -532,7 +531,6 @@ function transformer(options
 			}
 			else if (sequence.nodes)
 				deleteNodes(sequence.nodes[sequence.nodes.length - 1])
-
 		}
 		deleteNodes(wrappedGame.game)
 
@@ -590,6 +588,9 @@ function transformer(options
 			tGo.options.boardDimensions = options.boardDimensions
 			setUpMarkers()
 		}
+		if (node.KM !== undefined) {
+			options.rules = {komi: parseFloat(node.KM), ... options.rules }
+		}
 		node.SZ = "" + (options.boardDimensions[0] + 2 * options.projectionSettings.wraparound)//not sure how to make a rectangular goban!
 		//offset modulo
 		options.projectionSettings.offset[0] = modulo(options.projectionSettings.offset[0], options.boardDimensions[0])
@@ -634,14 +635,17 @@ function transformer(options
 
 		let state = { wrappedGame, node, pending, currentPath, tGo }
 
-		function comment(isPass, isBlack) {
-			if (!options.addComments)
+		function comment(isPass, isBlack, score) {
+			if (!options.addComments && !score)
 				return
 
-			let r = 'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
-			//let r =  'Black captures: ' + tGo.board.captured[1] + '\r\nWhite captures: ' + tGo.board.captured[0]
-			if (isPass)
-				r += '\n' + (isBlack ? 'Black passes' : 'White passes')
+			let r = !options.addComments ?
+				''
+				: 'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
+				//let r =  'Black captures: ' + tGo.board.captured[1] + '\r\nWhite captures: ' + tGo.board.captured[0]
+				+ (!isPass ? '' : '\n' + (isBlack ? 'Black passes' : 'White passes'))
+				+ (!score ? '' : '\n' + `result: ${score.displayResult}`)
+
 			r += '\n--(the content above was generated automatically by GoVariantsTransformer)--'
 			r += (node.C === undefined ? '' : '\n' + node.C)
 			node.C = r
@@ -659,6 +663,8 @@ function transformer(options
 					&& options.boardDimensions[0] <= 19
 					&& move === "tt" //weird SGF[3] way to show a pass move!
 				)
+				, stonesMarkedForScoring = []
+
 			if (move === undefined && !isPass) {
 				node = goThroughTree(state)
 				continue
@@ -671,7 +677,6 @@ function transformer(options
 				node[isBlack ? 'AB' : 'AW'] = []
 				// if (passes === 2) {
 				// 	//wrappedGame.game.nodes.splice(i+1)//get rid of nodes afterwards -- may not work with variations! todo
-				// 	//todo:score!
 				// 	break;//stop after 3 successive passes for now
 				// }
 				passes++
@@ -714,17 +719,15 @@ function transformer(options
 					node.CR = toAdd
 				if (toRemove.length > 0)
 					node.AE = toRemove
-				comment(isPass, isBlack)
 
+						/*
+						todo: other properties with board coordinates
+						Leave for now:
+						AR
+						LN
+						*/
 
-					/*
-					todo: other properties with board coordinates
-					Leave for now:
-					AR
-					LN
-					*/
-
-					;/*note this semicolon is needed! */
+						;/*note this semicolon is needed! */
 				[
 					//'CR',todo: add if not marking the move
 					'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
@@ -736,6 +739,9 @@ function transformer(options
 						}
 						else {
 							points = [node[sgfProperty]]
+						}
+						if (node.SC && sgfProperty === 'MA') {
+							stonesMarkedForScoring = { ...points }
 						}
 						points =
 							// _.chain(points)
@@ -753,6 +759,39 @@ function transformer(options
 						node[sgfProperty] = points
 					})
 				node.MN = currentPath.m
+
+				/*
+				Use a custom, new SGF property, SC, in order to see if the current position should be scored, and if so, what to do with the score.
+				It’s a bit flag.  
+				1	⇒ update the comments for the node (succint). When flagged, the next option is not available.
+				2	⇒ update the comments for the node (verbose)
+				4	⇒ update the game result (RE) for the root node
+				Typical usage: add “SC[6]” to the last node, and “SC[2]” to score a variation.
+				*/
+				let updatedComment = false
+				if (node.SC) {
+					let score = engine.score(stonesMarkedForScoring)
+					if (node.SC & 1 === 1) {
+						updatedComment = true
+						comment(isPass, isBlack, score.RE)
+					}
+					else /*don't want to treat succint and verbose at the same time*/ if (node.SC & 2 === 2) {
+						updatedComment = true
+						comment(isPass, isBlack,
+							`Black: ${score.totalWhiteDead
+							+ score.totalWhiteCaptured
+							+ score.totalBlackTerritory} = ${score.totalBlackTerritory} territory + ${score.totalWhiteDead + score.totalWhiteCaptured} prisoners
+White: ${score.totalBlackDead
+							+ score.totalBlackCaptured
+							+ score.totalWhiteTerritory} = ${score.totalWhiteTerritory} territory + ${score.totalBlackDead + score.totalBlackCaptured} prisoners +${engine.rules.komi} komi`)
+					}
+					if (node.SC & 4 === 4) {
+						wrappedGame.game.nodes[0].RE = score.RE
+					}
+				}
+				if (!updatedComment)
+					comment(isPass, isBlack)
+
 				// move to next node
 				node = goThroughTree(state)
 			}

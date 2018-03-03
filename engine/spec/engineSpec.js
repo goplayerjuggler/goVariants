@@ -168,13 +168,13 @@ describe("engine", function () {
 					expect(x.blackDead).toEqual([[1, 1]])
 
 					//white territory + 1 dead stone
-					go.board.whiteStones = [[0,1],[1,0]]
-					go.board.blackStones = [[1,1]]
-					x = go.board.score([[1,1]])//mark the black stone as dead
+					go.board.whiteStones = [[0, 1], [1, 0]]
+					go.board.blackStones = [[1, 1]]
+					x = go.board.score([[1, 1]])//mark the black stone as dead
 					expect(x.dame.length).toEqual(0)
 					expect(x.whiteEmpty.length).toEqual(361 - 2)
 					expect(x.blackEmpty).toEqual([])
-					expect(x.blackDead).toEqual([[1,1]])
+					expect(x.blackDead).toEqual([[1, 1]])
 				})
 
 			}
@@ -313,15 +313,15 @@ describe("engine", function () {
 				})
 				it("returns territory & dame", function () {
 					//white territory + dame
-					go.board.whiteStones = [[0, 1], [1, 0],[10,0],[0,10]]
+					go.board.whiteStones = [[0, 1], [1, 0], [10, 0], [0, 10]]
 					go.board.blackStones = [[1, 1]]
 					var x = go.board.score()
 					expect(x.dame.length).toEqual(121 - 6)
 					expect(x.whiteEmpty).toEqual([[0, 0]])
 					expect(x.blackEmpty).toEqual([])
-					
+
 					//just white territory
-					go.board.whiteStones = [[0, 1], [1, 0],[10,0],[0,10]]
+					go.board.whiteStones = [[0, 1], [1, 0], [10, 0], [0, 10]]
 					go.board.blackStones = []
 					x = go.board.score()
 					expect(x.dame.length).toEqual(0)
@@ -336,23 +336,69 @@ describe("engine", function () {
 					go.board.blackStones = [[1, 1]]
 					let x = go.board.score([[1, 1]])//stone marked as dead 
 					expect(x.dame.length).toEqual(0)
-					expect(x.whiteEmpty.length).toEqual(	121)
+					expect(x.whiteEmpty.length).toEqual(121)
 					expect(x.blackEmpty).toEqual([])
 					expect(x.blackDead).toEqual([[1, 1]])
 
 					//white territory + 1 dead stone
-					
-					go.board.whiteStones = [[0, 1], [1, 0],[10,0],[0,10]]
-					go.board.blackStones = [[1,1]]
-					x = go.board.score([[1,1]])//mark the black stone as dead
+
+					go.board.whiteStones = [[0, 1], [1, 0], [10, 0], [0, 10]]
+					go.board.blackStones = [[1, 1]]
+					x = go.board.score([[1, 1]])//mark the black stone as dead
 					expect(x.dame.length).toEqual(0)
 					expect(x.whiteEmpty.length).toEqual(121 - 4)
 					expect(x.blackEmpty).toEqual([])
-					expect(x.blackDead).toEqual([[1,1]])
+					expect(x.blackDead).toEqual([[1, 1]])
 				})
 
 			})
 
 		});
-	});
+	})
+
+	describe("scoring", () => {
+		var smartGame, transformer;
+		try {
+			smartGame = require('../../transformer/node_modules/smartgame')
+			transformer = require('../../transformer/src/transformer')()
+		} catch (error) {
+			var msg = "some tests scoring were not run because govariants-transformer is not present"
+			it(msg, () => { })
+			console.log(msg)
+			return
+		}
+		it("scores a game when dead stones are marked - test with a real game", () => {
+			let sgf = `(;GM[1]FF[4]CA[UTF-8]AP[WebGoBoard:0.10.8]ST[0]SZ[19]KM[6.5]HA[0]TM[40]DT[2018-01-13]PB[Lee Sedol]BR[9p]PW[Ke Jie]WR[9p]SO[gokifu.com];B[pd];W[dp];B[pq];W[dd];B[ql];W[nc];B[pf];W[qc];B[pc];W[pb];B[cc];W[cd];B[dc];W[fc];B[ec];W[ed];B[fb];W[rb];B[di];W[ck];B[fd];W[gc];B[gb];W[hc];B[fe];W[bc];B[bb];W[dg];B[id];W[ic];B[jd];W[jc];B[kd];W[ge];B[ff];W[be];B[ac];W[ci];B[df];W[cg];B[ob];W[oc];B[pa];W[qb];B[mc];W[nb];B[gd];W[pp];B[oq];W[pl];B[qm];W[hd];B[he];W[kc];B[lc];W[ie];B[hf];W[ld];B[md];W[gg];B[gf];W[le];B[je];W[lb];B[mb];W[ma];B[kb];W[la];B[me];W[jf];B[if];W[ke];B[ie];W[mf];B[od];W[ja];B[jg];W[pj];B[ol];W[lf];B[nf];W[mh];B[pk];W[ph];B[hb];W[ib];B[oh];W[oi];B[nh];W[ni];B[pg];W[li];B[mj];W[mk];B[ha];W[ia];B[lj];W[mi];B[qh];W[ih];B[eg];W[dj];B[fi];W[gj];B[fj];W[fk];B[gi];W[kj];B[dh];W[ch];B[ek];W[gk];B[ej];W[lk];B[dk];W[cj];B[qj];W[eh];B[ii];W[qq];B[qr];W[rr];B[rq];W[qp];B[rs];W[sr];B[sq];W[pr];B[ss];W[or];B[nq];W[nr];B[mq];W[mr];B[rp];W[lq];B[mo];W[ro];B[qo];W[oo];B[lp];W[qn];B[lr];W[kq];B[kr];W[kp];B[jr];W[ps];B[rn];W[po];B[so];W[hh];B[hi];W[iq];B[qo];W[jh];B[ei];W[ro];B[ko];W[jo];B[kn];W[jn];B[km];W[jm];B[kl];W[jl];B[dm];W[mn];B[mp];W[ir];B[qs];W[rm];B[qo];W[sr];B[rr];W[ro];B[oa];W[qa];B[qo];W[fg];B[fh];W[ro];B[nd];W[na];B[qo];W[eb];B[bd];W[ro];B[ka];W[sn];B[jb];W[sp];B[bl];W[sr];B[bk];W[pi];B[ml];W[bj];B[bf];W[cf];B[ae];W[de];B[ef];W[em];B[en];W[dn];B[cm];W[bg];B[af];W[ll];B[kk];W[mm];B[jj];W[ki];B[jk];W[qi];B[fn];W[fp];B[ho];W[gn];B[do];W[cp];B[go];W[ip];B[il];W[rh];B[im];W[bn];B[cn];W[bo];B[hq];W[gq];B[gp];W[gr];B[rg];W[qg];B[qf];W[bm];B[cl];W[re];B[qh];W[si];B[rd];W[qd];B[qe];W[se];B[rf];W[sd];B[ep];W[eq];B[fo];W[fq];B[hp];W[hr];B[no];W[nn];B[kf];W[in];B[hn];W[al];B[ak];W[am];B[lm];W[nl];B[io];W[jp];B[ng];W[lg];B[kg];W[ig];B[mg];W[lh];B[op];W[ln];B[lo];W[qg];B[sc];W[rc];B[qh];W[eo];B[qg];W[ep];B[sh];W[ri];B[co];W[kh];B[jf];W[sf];B[sg];W[sb];B[ji];MA[lj][gk][be][eb][jr]W[gh]SC[6])`
+			let
+				parsed = smartGame.parse(sgf)
+				, engine = goEngine({ boardMode: 'c', boardDimensions: [19, 19], rules: { komi: 6.5} })
+			for (let index = 1 /*omit first node*/; index < parsed.gameTrees[0].nodes.length; index++) {
+				const node = parsed.gameTrees[0].nodes[index],
+					colour = node.B ? 'b' : 'w',
+					coords1 = node[colour.toUpperCase()],
+					coords2 = transformer.translateCoordinates(coords1)
+				try {
+					engine.play(colour, coords2)
+				} catch (error) {
+					console.log(error)
+				}
+
+			}
+			const lastNode = parsed.gameTrees[0].nodes[parsed.gameTrees[0].nodes.length - 1]
+				, marked = lastNode.MA.map(transformer.translateCoordinates)
+				, score = engine.board.score(marked)
+			// , blackEmpty = score.blackEmpty.map(coord=>`[${transformer.coordinateLabels(coord[0])}${transformer.coordinateLabels(coord[1])}]`).join('')
+			// , whiteEmpty = score.whiteEmpty.map(coord=>`[${transformer.coordinateLabels(coord[0])}${transformer.coordinateLabels(coord[1])}]`).join('')
+			//  console.log(score)
+			//  console.log(blackEmpty)
+			expect(score.RE).toEqual('B+1.5')
+			expect(score.totalBlackCaptured).toEqual(24)
+			expect(score.totalBlackDead).toEqual(10)
+			expect(score.totalBlackTerritory).toEqual(72)
+			expect(score.totalWhiteCaptured).toEqual(25)
+			expect(score.totalWhiteDead).toEqual(21)
+			expect(score.totalWhiteTerritory).toEqual(76)
+		})
+
+	})
 });
