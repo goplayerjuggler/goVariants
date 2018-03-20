@@ -33,7 +33,7 @@ This section just assumes basic knowledge of HTML and javascript.
 
 ### Recommended method: via the `editor` component
 
-The recommended way to use this library via an `editor` component, as in the [online demo](https://goplayerjuggler.github.io/goVariants/tGoEditor.html). The source code is here: [tGoEditor.html](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html).
+The recommended way to use this library via an `editor` component, as in the [online demo](https://goplayerjuggler.github.io/goVariants/tGoEditor.html). The source code is here: [`tGoEditor.html`](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html).
 
 #### Steps
 
@@ -49,7 +49,7 @@ The recommended way to use this library via an `editor` component, as in the [on
     </head>
     ```
 
-    The `versionId` to use for the last script can be copied from `tGoEditor.html`. 
+    The `versionId` to use for the last script can be copied from [`tGoEditor.html`](https://github.com/goplayerjuggler/goVariants/blob/master/docs/tGoEditor.html). 
 
 2.  In order to open the page with a game preloaded, add the following HTML to the page, inside the `body`:
     ```html
@@ -64,9 +64,9 @@ The recommended way to use this library via an `editor` component, as in the [on
 #### Displaying a specific game
 
 The component can be loaded with a specific game displayed as follows. 
-1\. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
-1\. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
-1\. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
+1. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
+1. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
+1. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
 
 #### Notes:
 
@@ -97,7 +97,7 @@ The component can be loaded with a specific game displayed as follows.
 
 ### Lower-level technique importing the transform function
 
-Alternatively, order to just tranform t-Go SGF, the main function defined in [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js) can be used. 
+Alternatively, order to just tranform t-Go SGF, the main function defined in [`src/transformer.js`](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js) can be used. 
 
 This function can be loaded in an html page by adding a `script` tag in order to load the minified version `transformer.min.js` as follows (the version ID has to be set according to some git version id for the file).
 
@@ -135,6 +135,8 @@ Check the installation worked by running the unit tests (assuming `gulp` is inst
 ```shell
 $ gulp test
 ```
+
+In order to run the editor locally, the dependency `goboardmin.js` from the [GoProject](https://github.com/IlyaKirillov/GoProject) library has to be manually installed in the `lib` folder.
 
 ### Installation in a different project
 
