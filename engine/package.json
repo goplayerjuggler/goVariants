@@ -1,6 +1,6 @@
 {
   "name": "go-variants-engine",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Go engine for standard Go (aka Baduk aka Weiqi) and toroidal Go (t-Go). It may in the future handle Go on other graphs that are locally like Go like cylinders, Klein surfaces, … ",
   "main": "src/engine",
   "scripts": {

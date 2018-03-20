@@ -1,6 +1,6 @@
 {
   "name": "go-variants-transformer",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Tool for transforming SGF for a Go variant into SGF that works SGF viewers for standard Go.",
   "main": "src/transformer",
   "scripts": {

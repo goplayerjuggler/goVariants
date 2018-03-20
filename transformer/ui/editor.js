@@ -17,9 +17,7 @@ document.goVariantsEditor = function (editorOptions) {
 	var getElementByIdSuffix = (suffix) => document.getElementById(rootId + '_' + suffix)
 
 
-	getElementByIdSuffix('updateButton').addEventListener('click', function () {
-		updateVariantSgf()
-	})
+	getElementByIdSuffix('updateButton').addEventListener('click', updateVariantSgf)
 
 		;[].forEach.call(document.querySelectorAll(`#${rootId}_viewerControls input[type=button]`), function (el) {
 			el.addEventListener('click', function (e) {
@@ -52,7 +50,7 @@ document.goVariantsEditor = function (editorOptions) {
 			el.style.display = 'none'
 		})
 	}
-	
+
 	getElementByIdSuffix('goButton').addEventListener('click', function () {
 		showBoard()
 	})
@@ -135,7 +133,7 @@ document.goVariantsEditor = function (editorOptions) {
 				alert('No SGF was entered, so showing a simple sample instead.')
 				viewer.warnedEmptySgf = true
 			}
-			tSgf = '(;GM[1]FF[4]CA[UTF-8]AP[go-variants-transformer]ST[0]SZ[4]KM[0]HA[0]PB[Black]PW[White]C[Here is a small sample game of Toroidal Go. It ends in a seki.];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd];B[ca];W[cd];B[db];W[dc];B[cc];MA[ba]C[It’s a seki; neither player should play at X now - if they do, they put there own stones in atari. This is shown in the next two variations.]W[da](;B[ba];W[cb])(;B[];W[ba];B[ad]))'//forked from sample7
+			tSgf = '(;GM[1]FF[4]CA[UTF-8]AP[go-variants-transformer]ST[0]SZ[4]KM[0]HA[0]PB[Black]PW[White]C[Here is a small sample game of Toroidal Go. It ends in a seki.];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd];B[ca];W[cd];B[db];W[dc];B[cc];MA[ba]C[It’s a seki; neither player should play at X now - if they do, they put their own stones in atari. This is shown in the next two variations.]W[da](;B[ba];W[cb])(;B[];W[ba];B[ad]))'//forked from sample7
 			getElementByIdSuffix("sgfIn").value = tSgf
 		}
 		var wraparound = Number(getElementByIdSuffix('wraparoundSelect').value)
@@ -161,23 +159,31 @@ document.goVariantsEditor = function (editorOptions) {
 			alert('an error occurred.')
 			return
 		}
+
+		viewer.sgf = sgf
 		if (!panningDirection) {
 
 			var oGameTree = GoBoardApi.Create_GameTree()
 			viewer.oGameTree = oGameTree
+
+			GoBoardApi.Set_OnGameTreeModifiedCallback(oGameTree, () => { })
 			GoBoardApi.Toggle_Rulers(oGameTree)
+			GoBoardApi.Set_DrawHandicapMarks(oGameTree, false)
+			GoBoardApi.Set_CapturingMode(oGameTree, false)
 
-			GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, rootId + '_' + "playerDiv");
-
+			GoBoardApi.Create_BoardCommentsButtonsNavigator(oGameTree, rootId + '_' + "playerDiv")
 			// GoBoardApi.Create_EditorVer(oGameTree, "playerDiv");
 			if (moveReference !== undefined)
 				GoBoardApi.Load_Sgf(viewer.oGameTree, sgf, undefined, moveReference);
 			else
 				GoBoardApi.Load_Sgf(oGameTree, sgf);
 
+			GoBoardApi.Set_OnGameTreeModifiedCallback(oGameTree, gameTreeModifiedCallback)
+
 			window.onresize = function () {
 				GoBoardApi.Update_Size(oGameTree);
 			};
+
 
 			getElementByIdSuffix('viewerControls').style.display = "inline-block"
 			getElementByIdSuffix('updateButtonDiv').style.display = "inline-block"
@@ -187,15 +193,32 @@ document.goVariantsEditor = function (editorOptions) {
 			}
 		}
 		else {
+			GoBoardApi.Set_OnGameTreeModifiedCallback(viewer.oGameTree, () => { })
 			moveReference = GoBoardApi.Get_MoveReference(viewer.oGameTree, false)
-			GoBoardApi.Load_Sgf(viewer.oGameTree, sgf, undefined, moveReference);
-			getElementByIdSuffix('offsetTr').innerHTML = 'panned: [' + viewer.transformer.options.projectionSettings.offset[0] + ', ' + viewer.transformer.modY(-viewer.transformer.options.projectionSettings.offset[1]) + ']'
+			GoBoardApi.Load_Sgf(viewer.oGameTree, sgf, undefined, moveReference)
+			GoBoardApi.Set_OnGameTreeModifiedCallback(viewer.oGameTree, gameTreeModifiedCallback)
+			getElementByIdSuffix('offsetTr').innerHTML = 'panned: ['
+				+ viewer.transformer.modX(viewer.transformer.options.projectionSettings.offset[0])
+				+ ', ' + viewer.transformer.modY(-viewer.transformer.options.projectionSettings.offset[1]) + ']'
 		}
 
 	}
+
+	function gameTreeModifiedCallback() {
+		//when a move is played, the callback is raised twice in quick succession. We want to only do work on the second call.
+		if (!viewer.callbackLastCalled) {
+			viewer.callbackLastCalled = Date.now()
+			return;
+		}
+		if (Date.now() - viewer.callbackLastCalled < 300) {
+			updateVariantSgf()
+		}
+		else viewer.callbackLastCalled = Date.now()
+	}
+
 	function looksLikeSgf(sgf, size) {
 		let result = sgf.startsWith('(')
-			// && sgf.indexOf('GM[1]') > 0 //SGF LG doesn't!
+		// && sgf.indexOf('GM[1]') > 0 //SGF LG doesn't!
 
 		if (size) {
 			return result && sgf.indexOf(`SZ[${size}]` > 3)
@@ -204,6 +227,10 @@ document.goVariantsEditor = function (editorOptions) {
 	}
 	function updateVariantSgf() {
 		var sgf = GoBoardApi.Save_Sgf(viewer.oGameTree)
+		if (sgf == viewer.sgf) {
+			return
+		}
+		viewer.sgf = sgf
 		var moveReference = GoBoardApi.Get_MoveReference(viewer.oGameTree, false)
 		// var options = viewer.transformer.options
 		// options.boardDimensions = options.boardDimensions.map((x) => x - 2 * options.projectionSettings.wraparound) 
@@ -243,7 +270,7 @@ document.goVariantsEditor = function (editorOptions) {
 
 				// Examine the text in the response
 				response.text().then(function (sgf) {
-					if (!looksLikeSgf(sgf,11 /*LG is always 11x11*/  )) {
+					if (!looksLikeSgf(sgf, 11 /*LG is always 11x11*/)) {
 						console.log('invalid SGF. Received:' + sgf)
 
 						getElementByIdSuffix('goLgMsg').innerText = failMsg

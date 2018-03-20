@@ -4,10 +4,10 @@
 /**
  * Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
  * @param {object} [options=] Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
- * @param {boolean} [options.addComments = true] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
+ * @param {boolean} [options.addComments = false] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
  * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
  * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
- * @param {number} [options.coordinatesType = 1] 0: none;
+ * @param {number} [options.coordinatesType = 0] 0: none;
  * 1: (→↑;A|1-K|11): Western;
  * 2: (→↑;A|1-L|11): Western, no “I”;
  * 3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
@@ -27,8 +27,8 @@
 options.markLastMove Default value: 'CR'
 opions.placesToCount Default: undefined. May be: 'last'|[countInfo1, .. countInfo1]. countInfo is a path plus an array with a point for each chain to be considered as dead. {path, deadChains: [...]}
 options.projectionSettings.rotation {integer} Default value: 0. Allowed values: 0 .. 3
-options.projectionSettings.normalize1stMove array, or one of: C, TL TR BL BR 
-options.projectionSettings.normalize2ndMove 
+options.projectionSettings.normalizePlace array, or one of: C, TL TR BL BR (centre, top left, top right, bottom left, bottom right)
+options.projectionSettings.normalize {boolean} 
 
 */
 function transformer(options
@@ -45,7 +45,7 @@ function transformer(options
 		, boardDimensions: [11, 11]
 		, transformToString: true
 		, addComments: true
-		, coordinatesType: 1
+		, coordinatesType: 0
 		, wraparoundMarkersType: 1
 		//above are the defaults
 		, ...options
@@ -557,7 +557,10 @@ function transformer(options
 		, smartgamer) {
 
 		if (tGo === undefined) {
-			tGo = require('go-variants-engine')({
+			//  tGo = require('../dist/node_modules/go-variants-engine/src/engine.min.js')({
+			//  tGo = require('../../engine/dist/engine.min.js')({
+				tGo = require('go-variants-engine')({
+					// tGo = require('../node_modules/go-variants-engine/src/engine')({
 				// boardMode:'t',
 				boardDimensions: options.boardDimensions
 			})

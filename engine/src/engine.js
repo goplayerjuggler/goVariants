@@ -41,24 +41,30 @@ module.exports = function (options) {
 
 
 	options = options || {}
-	// boardMode = options.boardMode || 't'/*t:toroid; c:classic ...*/
+	// boardMode = options.boardMode || 't'/*t:toroid; c:classic …*/
 	// , boardDimensions = options.boardDimensions || [11, 11]/*move later*/
 	// , rules = options.rules || {
 	// suicide: true,
 	// superko: false
 	// }
 	let $ = {}
-	$.rules = {
-			suicide: true,
-			// superko: false /*⇒todo: enforce when true?*/,
-			komi: 7.5,
-			... options.rules
-		}
+	////problem with the object spread operator and the build so using Object.assign instead.
+	// $.rules = {
+	// 		suicide: true,
+	// 		// superko: false /*⇒todo: enforce when true?*/,
+	// 		komi: 7.5,
+	// 		... options.rules
+	// 	}
+	$.rules = Object.assign({}, {
+		suicide: true,
+		// superko: false /*⇒todo: enforce when true?*/,
+		komi: 7.5,
+	}, options.rules)
 
 	// $.moves = options.moves || []
 	$.options = options
 	options.boardDimensions = options.boardDimensions || [11, 11]
-	options.boardMode = options.boardMode || 't'/*t:toroid; c:classic ...*/
+	options.boardMode = options.boardMode || 't'/*t:toroid; c:classic …*/
 	$.board = {}
 	$.board.blackStones = options.blackStones || []
 	$.board.whiteStones = options.whiteStones || []
@@ -133,7 +139,7 @@ module.exports = function (options) {
 			}
 			return result
 		}
-	//todo: klein, projective plane, ...
+	//todo: klein, projective plane, …
 
 	$.board.isEmpty = function (point) {
 		return myIndexOf($.board.blackStones, point) < 0
@@ -433,14 +439,14 @@ module.exports = function (options) {
 		}
 
 		/*
-			storing the situation in memory - would be useful when implementing going back a move, superko, ...
+			storing the situation in memory - would be useful when implementing going back a move, superko, …
 			not needed for now
 		*/
 		//$.moves.push([playerColour,point,_.clone($.board.whiteStones),_.clone($.board.blackStones)])
 		// $.moves.push([playerColour,point])
 
 		// getNeighbours[i] = [getNeighbours[i], $.board.getColour[getNeighbours[i]]
-		// //...
+		// //…
 
 
 		return { removed, suicide }

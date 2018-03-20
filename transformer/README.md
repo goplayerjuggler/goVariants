@@ -5,33 +5,40 @@ This module provides tools for viewing and editing game records or game commenta
 This module builds on existing software for viewing/editing [Go](https://en.wikipedia.org/wiki/Go_(game)) games with standard rules. It works by transforming [SGF](http://www.red-bean.com/sgf/index.html) for the Go variant into SGF that works in SGF viewers for standard Go. 
 
 The two main parts of this module are:
-* `src/transformer.js`: Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
-* `ui/editor.js` and `ui/editor.jsx`: provide a viewer/editor by combining `transformer.js` and the Web Go Board from the [GoProject](https://github.com/IlyaKirillov/GoProject) library.
 
+-   `src/transformer.js`: Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
+-   `ui/editor.js` and `ui/editor.jsx`: provide a viewer/editor by combining `transformer.js` and the Web Go Board from the [GoProject](https://github.com/IlyaKirillov/GoProject) library.
 
 ## Online samples
 
 -   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html) (the source code is [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)). 
--   [blog post (2017-12-22) with a real commented game](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
-    This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
-
+-   Blog posts (games of toroidal Go with commentaries)
+    - [(2018-03-16) a memorable game with a few ups and downs](http://goplayerjuggler.blogspot.com/2018/03/toroidal-go-commentary-on-memorable.html)
+    -   [(2017-12-22) a big fight](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
+        This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
+    
 
 ## Libraries used
-* SGF viewer:
 
-    In the initial versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used, but in order to work with variations, the Web Go board in the [GoProject](https://github.com/IlyaKirillov/GoProject) library is now used instead.
-* For parsing and manipulating SGF data:
-    
-    npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
+-   SGF viewer:
+
+      In the initial versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used, but in order to work with variations, the Web Go board in the [GoProject](https://github.com/IlyaKirillov/GoProject) library is now used instead.
+
+-   For parsing and manipulating SGF data:
+      npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
 
 ## Usage - for HTML / Javascript developers
 
 This section just assumes basic knowledge of HTML and javascript.
 
 ### Recommended method: via the `editor` component
+
 The recommended way to use this library via an `editor` component, as in the [online demo](https://goplayerjuggler.github.io/goVariants/tGoEditor.html). The source code is here: [tGoEditor.html](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html).
+
 #### Steps
-1. Three script tags should be added inside the html `head`:
+
+1.  Three script tags should be added inside the html `head`:
+
     ```html
     <head>
         ...
@@ -40,10 +47,11 @@ The recommended way to use this library via an `editor` component, as in the [on
         <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/9ec632af7c8c2b9a03d4d853ddaca977c3135771/transformer/utils/no-react.js"></script>
         <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/<versionId>/transformer/dist/ui/editor.min.js"></script>
     </head>
-    ``` 
+    ```
+
     The `versionId` to use for the last script can be copied from `tGoEditor.html`. 
 
-1. In order to open the page with a game preloaded, add the following HTML to the page, inside the `body`:
+2.  In order to open the page with a game preloaded, add the following HTML to the page, inside the `body`:
     ```html
     <div id="sgfViewer" class="go-variants-editor">
         <div style="display: none" class="go-variants-data">
@@ -54,23 +62,30 @@ The recommended way to use this library via an `editor` component, as in the [on
     Alternatively, in order to display the editor component without a game preloaded, just leave out the inner `div` with the class `go-variants-data`.
 
 #### Displaying a specific game
+
 The component can be loaded with a specific game displayed as follows. 
-1. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
-1. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
-1. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
+1\. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
+1\. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
+1\. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
+
 #### Notes:
-1. Some parts of the editor component can be hidden by adding the CSS class `go-variants-hide-extras` to the main `div`. 
+
+1.  Some parts of the editor component can be hidden by adding the CSS class `go-variants-hide-extras` to the main `div`. 
+
     ```html
     <div id="sgfViewer" class="go-variants-editor go-variants-hide-extras">
     ```
 
     The sections that are hidden when `go-variants-hide-extras` is added are:
+
     - the “t-Go SGF” section 
     - the “load from LittleGolem” section
     - the “new game” section
     - the “transformed SGF” section
-1. An `id` needs to be provided for the main `div`; there are no specific constraints on the value.
-1. multiple instances of the component can be used by creating several main `div`s.
+
+2.  An `id` needs to be provided for the main `div`; there are no specific constraints on the value.
+3.  multiple instances of the component can be used by creating several main `div`s.
+
     ```html
     <div id="game1" class="go-variants-editor go-variants-hide-extras">
     ...
@@ -79,12 +94,13 @@ The component can be loaded with a specific game displayed as follows.
     ...
     </div>
     ```
- 
 
 ### Lower-level technique importing the transform function
+
 Alternatively, order to just tranform t-Go SGF, the main function defined in [src/transformer.js](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/src/transformer.js) can be used. 
 
 This function can be loaded in an html page by adding a `script` tag in order to load the minified version `transformer.min.js` as follows (the version ID has to be set according to some git version id for the file).
+
 ```html
 <script type="text/javascript" language="JavaScript" src="https://cdn.rawgit.com/goplayerjuggler/goVariants/<versionId>/transformer/dist/src/transformer.min.js"></script>
 ```
@@ -166,17 +182,19 @@ $ node transformOneFile path_to_input_sgf path_to_output_sgf
 
 ### transformer
 
+Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
+
 **Parameters**
 
 -   `options` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
-    -   `options.addComments` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White. (optional, default `true`)
+    -   `options.addComments` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White. (optional, default `false`)
     -   `options.addPasses` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers. (optional, default `true`)
     -   `options.boardDimensions` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf). (optional, default `[11,11]`)
     -   `options.coordinatesType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
         1: (→↑;A|1-K|11): Western;
         2: (→↑;A|1-L|11): Western, no “I”;
         3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
-        4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom; (optional, default `1`)
+        4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom; (optional, default `0`)
     -   `options.wraparoundMarkersType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
         1: Full outline, using unicode Box Drawing symbols;
         2: corners and middles, using unicode Box Drawing symbols;
