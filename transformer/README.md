@@ -20,9 +20,9 @@ The two main parts of this module are:
 
 ## Libraries used
 
--   SGF viewer:
+-   SGF viewer: [Web Go Board](https://github.com/IlyaKirillov/GoProject) – special thanks to Ilya Kirillov, the developer of Web Go Board, for [building a few features](https://github.com/IlyaKirillov/GoProject/issues/28) to improve the integration with  this project.
 
-      In the initial versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used, but in order to work with variations, the Web Go board in the [GoProject](https://github.com/IlyaKirillov/GoProject) library is now used instead.
+      In earlier versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used – it still could be used for in read-only mode for reviewing games without variations. 
 
 -   For parsing and manipulating SGF data:
       npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
