@@ -13,10 +13,10 @@ The two main parts of this module are:
 
 -   [viewer & editor](https://goplayerjuggler.github.io/goVariants/tGoEditor.html) (the source code is [here](https://github.com/goplayerjuggler/goVariants/tree/master/docs/tGoEditor.html)). 
 -   Blog posts (games of toroidal Go with commentaries)
-    - [(2018-03-16) a memorable game with a few ups and downs](http://goplayerjuggler.blogspot.com/2018/03/toroidal-go-commentary-on-memorable.html)
+
+    -   [(2018-03-16) a memorable game with a few ups and downs](http://goplayerjuggler.blogspot.com/2018/03/toroidal-go-commentary-on-memorable.html)
     -   [(2017-12-22) a big fight](http://goplayerjuggler.blogspot.com/2017/12/a-big-fight-in-t-go-game-same-game-but.html)
         This blog post was made by adapting the files [viewerLocal.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/viewerLocal.html) and [blogTemplate.html](https://github.com/goplayerjuggler/goVariants/tree/master/transformer/samples/blogTemplate.html).
-    
 
 ## Libraries used
 
@@ -78,10 +78,10 @@ The component can be loaded with a specific game displayed as follows.
 
     The sections that are hidden when `go-variants-hide-extras` is added are:
 
-    - the “t-Go SGF” section 
-    - the “load from LittleGolem” section
-    - the “new game” section
-    - the “transformed SGF” section
+    -   the “t-Go SGF” section 
+    -   the “load from LittleGolem” section
+    -   the “new game” section
+    -   the “transformed SGF” section
 
 2.  An `id` needs to be provided for the main `div`; there are no specific constraints on the value.
 3.  multiple instances of the component can be used by creating several main `div`s.
@@ -190,18 +190,34 @@ Provides a function for transforming SGF for a Go variant to SGF for a standard 
 
 -   `options` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
     -   `options.addComments` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White. (optional, default `false`)
-    -   `options.addPasses` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers. (optional, default `true`)
+    -   `options.addMoveNumber` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** When flagged, `MN[<moveNumber>]` is added to each node. (optional, default `false`)
+    -   `options.moveType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Controls how moves are represented in the transformed SGF. Examples given for black moves, so with option 2 a white move is represented by `W[point]AW[otherPoints]`. Options: -   0: `AB[points]`;
+
+        -   1: `AB[points]B[]` (same as for `moveType===0` but with the “pass” (“B\[]”);
+
+        -   2: `B[point]AB[otherPoints]` where `point` is the coordinates of the move in the main board (a single point), and `otherPoints` is an array of the coordinates of the move in the wraparound area.;
+
+        -   3: `B[points]`; (optional, default `2`)
+    -   `options.markLastMove` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** Gives the SGF attribute to be created to mark each move. May be left empty/null/undefined. Or else a value like `"CR"`. (optional, default `null`)
     -   `options.boardDimensions` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf). (optional, default `[11,11]`)
-    -   `options.coordinatesType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
-        1: (→↑;A|1-K|11): Western;
-        2: (→↑;A|1-L|11): Western, no “I”;
-        3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
-        4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom; (optional, default `0`)
-    -   `options.wraparoundMarkersType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** 0: none;
-        1: Full outline, using unicode Box Drawing symbols;
-        2: corners and middles, using unicode Box Drawing symbols;
-        3: just corners, using unicode Box Drawing symbols;
-        4: just middles, using unicode Box Drawing symbols; (optional, default `1`)
+    -   `options.coordinatesType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Options: -   0: none;
+
+        -   1: (→↑;A|1-K|11): Western;
+
+        -   2: (→↑;A|1-L|11): Western, no “I”;
+
+        -   3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
+
+        -   4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom; (optional, default `0`)
+    -   `options.wraparoundMarkersType` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Options:-   0: none;
+
+        -   1: Full outline, using unicode Box Drawing symbols;
+
+        -   2: corners and middles, using unicode Box Drawing symbols;
+
+        -   3: just corners, using unicode Box Drawing symbols;
+
+        -   4: just middles, using unicode Box Drawing symbols; (optional, default `1`)
     -   `options.projectionSettings` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
         -   `options.projectionSettings.wraparound` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Number of lines to add for the “wraparound”. (optional, default `4`)
         -   `options.projectionSettings.offset` **[array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** Translation to apply to all moves. (optional, default `[0,0]`)
