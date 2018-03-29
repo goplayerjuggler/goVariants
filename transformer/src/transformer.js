@@ -5,18 +5,43 @@
  * Provides a function for transforming SGF for a Go variant to SGF for a standard Go viewer; also provides a function for the inverse transformation.
  * @param {object} [options=] Defines various options for the output SGF. May be omitted, in which case the default options (see below) are used.
  * @param {boolean} [options.addComments = false] When flagged, comments are added to each node giving the move number and the number of stones captured by Black and White.
- * @param {boolean} [options.addPasses = true] When flagged, a pass is added to each node corresponding to a move by a player. This can make the output more easy to navigate in some viewers.
+ * @param {boolean} [options.addMoveNumber = false] When flagged, `MN[<moveNumber>]` is added to each node.
+ * @param {number} [options.moveType = 2] Controls how moves are represented in the transformed SGF. Examples given for black moves, so with option 2 a white move is represented by `W[point]AW[otherPoints]`. Options: 
+ * 
+ * - 0: `AB[points]`;
+ * 
+ * - 1: `AB[points]B[]` (same as for `moveType===0` but with the “pass” (“B[]”);
+ * 
+ * - 2: `B[point]AB[otherPoints]` where `point` is the coordinates of the move in the main board (a single point), and `otherPoints` is an array of the coordinates of the move in the wraparound area.;
+ * 
+ * - 3: `B[points]`;
+ * 
+ * @param {string} [options.markLastMove = null] Gives the SGF attribute to be created to mark each move. May be left empty/null/undefined. Or else a value like `"CR"`.
  * @param {array} [options.boardDimensions = [11, 11]] May be used for rectangular t-Go. Should be ommitted for [n, n] t-Go, where n is specified in the input SGF (@param variantSgf).
- * @param {number} [options.coordinatesType = 0] 0: none;
- * 1: (→↑;A|1-K|11): Western;
- * 2: (→↑;A|1-L|11): Western, no “I”;
- * 3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
- * 4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom;
- * @param {number} [options.wraparoundMarkersType = 1] 0: none;
- * 1: Full outline, using unicode Box Drawing symbols;
- * 2: corners and middles, using unicode Box Drawing symbols;
- * 3: just corners, using unicode Box Drawing symbols;
- * 4: just middles, using unicode Box Drawing symbols;
+ * @param {number} [options.coordinatesType = 0] Options: 
+ * 
+ * - 0: none;
+ * 
+ * - 1: (→↑;A|1-K|11): Western;
+ * 
+ * - 2: (→↑;A|1-L|11): Western, no “I”;
+ * 
+ * - 3: (→↓;1|1-11|11): Latin/Latin, top to bottom;
+ * 
+ * - 4: (→↓;1|1-11|十一): Latin/Chinese, top to bottom;
+ * 
+ * @param {number} [options.wraparoundMarkersType = 1] Options:
+ * 
+ * - 0: none;
+ * 
+ * - 1: Full outline, using unicode Box Drawing symbols;
+ * 
+ * - 2: corners and middles, using unicode Box Drawing symbols;
+ * 
+ * - 3: just corners, using unicode Box Drawing symbols;
+ * 
+ * - 4: just middles, using unicode Box Drawing symbols;
+ * 
  * @param {object} [options.projectionSettings=] Further optional settings for how the (toroidal, or other sort of) board is projected to a flat grid.
  * @param {number} [options.projectionSettings.wraparound = 4]  Number of lines to add for the “wraparound”.
  * @param {array} [options.projectionSettings.offset = [0,0]]  Translation to apply to all moves.
@@ -24,7 +49,6 @@
  * @public
  * @return {object} An object exposing functions for going back and forth between SGF for a standard viewer, and SGF for a game of toroidal Go
  *//*todos:
-options.markLastMove Default value: 'CR'
 opions.placesToCount Default: undefined. May be: 'last'|[countInfo1, .. countInfo1]. countInfo is a path plus an array with a point for each chain to be considered as dead. {path, deadChains: [...]}
 options.projectionSettings.rotation {integer} Default value: 0. Allowed values: 0 .. 3
 options.projectionSettings.normalizePlace array, or one of: C, TL TR BL BR (centre, top left, top right, bottom left, bottom right)
@@ -41,12 +65,13 @@ function transformer(options
 		, modulo = (x, y) => (x % y + y) % y
 		, sourceSgfMessage = 'source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application'
 	options = {
-		addPasses: true
-		, boardDimensions: [11, 11]
+		boardDimensions: [11, 11]
 		, transformToString: true
 		, addComments: true
 		, coordinatesType: 0
 		, wraparoundMarkersType: 1
+		, moveType: 2
+		, markLastMove: null
 		//above are the defaults
 		, ...options
 	}
@@ -127,6 +152,14 @@ function transformer(options
 
 		for (let i = Math.ceil(-(wraparound + a) / m); i <= (wraparound + m - 1 - a) / m; i++)
 			r.push(wraparound + a + i * m)
+
+		if (options.moveType === 2) {//ensure the last item in the result is the one inside the main board area
+			r.sort((x, y) => {
+				if (x >= wraparound && x < wraparound + m) return 1
+				if (y >= wraparound && y < wraparound + m) return -1
+				return 0
+			})
+		}
 		return r
 	}
 
@@ -152,7 +185,7 @@ function transformer(options
 	 */
 	function projectOnFlat(p) {
 		const a = $.projectOnLine(p[0] + options.projectionSettings.offset[0])
-			, b = $.projectOnLine(p[1] + options.projectionSettings.offset[1])
+			, b = $.projectOnLine(p[1] + options.projectionSettings.offset[1], true)
 			, r = []
 		for (let i = 0; i < a.length; i++)
 			for (let j = 0; j < b.length; j++)
@@ -559,8 +592,8 @@ function transformer(options
 		if (tGo === undefined) {
 			//  tGo = require('../dist/node_modules/go-variants-engine/src/engine.min.js')({
 			//  tGo = require('../../engine/dist/engine.min.js')({
-				tGo = require('go-variants-engine')({
-					// tGo = require('../node_modules/go-variants-engine/src/engine')({
+			tGo = require('go-variants-engine')({
+				// tGo = require('../node_modules/go-variants-engine/src/engine')({
 				// boardMode:'t',
 				boardDimensions: options.boardDimensions
 			})
@@ -592,7 +625,7 @@ function transformer(options
 			setUpMarkers()
 		}
 		if (node.KM !== undefined) {
-			options.rules = {komi: parseFloat(node.KM), ... options.rules }
+			options.rules = { komi: parseFloat(node.KM), ...options.rules }
 		}
 		node.SZ = "" + (options.boardDimensions[0] + 2 * options.projectionSettings.wraparound)//not sure how to make a rectangular goban!
 		//offset modulo
@@ -662,21 +695,21 @@ function transformer(options
 			let
 				isBlack = node.B !== undefined
 				, move = isBlack ? node.B : node.W
-				, isPass = move === "" || (options.boardDimensions[0] === options.boardDimensions[1]
+				, isAPass = move === "" || (options.boardDimensions[0] === options.boardDimensions[1]
 					&& options.boardDimensions[0] <= 19
 					&& move === "tt" //weird SGF[3] way to show a pass move!
 				)
 				, stonesMarkedForScoring = []
 
-			if (move === undefined && !isPass) {
+			if (move === undefined && !isAPass) {
 				node = goThroughTree(state)
 				continue
 			}
 			setLabels()
 
-			if (isPass) {
+			if (isAPass) {
 				delete node[isBlack ? 'B' : 'W']
-				comment(isPass, isBlack)
+				comment(isAPass, isBlack)
 				node[isBlack ? 'AB' : 'AW'] = []
 				// if (passes === 2) {
 				// 	//wrappedGame.game.nodes.splice(i+1)//get rid of nodes afterwards -- may not work with variations! todo
@@ -713,13 +746,26 @@ function transformer(options
 							.map($.coords2String)
 
 				//alter the node
-				if (options.addPasses)
+				if (options.moveType === 2) {
+					let moveMarker = `${isBlack ? 'B' : 'W'}`
+					node[moveMarker] = toAdd.pop()
+					if (toAdd.length > 0) {
+						node['A' + moveMarker] = toAdd
+					}
+
+				} else {
+					let moveMarker = `${options.moveType < 3 ? 'A' : ''}${isBlack ? 'B' : 'W'}`
+
+					node[moveMarker] = toAdd
+					if (options.markLastMove) {
+						node[options.markLastMove] = toAdd
+					}
+				}
+
+				if (options.moveType === 1)
 					node[isBlack ? 'B' : 'W'] = ''
-				else delete node[isBlack ? 'B' : 'W']
-				// node[isBlack ? 'B' : 'W'] = ''
-				node[isBlack ? 'AB' : 'AW'] = toAdd
-				if (toAdd.length > 0)
-					node.CR = toAdd
+
+
 				if (toRemove.length > 0)
 					node.AE = toRemove
 
@@ -761,7 +807,8 @@ function transformer(options
 								.map($.coords2String)
 						node[sgfProperty] = points
 					})
-				node.MN = currentPath.m
+				if (options.addMoveNumber) 
+					node.MN = currentPath.m
 
 				/*
 				Use a custom, new SGF property, SC, in order to see if the current position should be scored, and if so, what to do with the score.
@@ -776,11 +823,11 @@ function transformer(options
 					let score = engine.score(stonesMarkedForScoring)
 					if (node.SC & 1 === 1) {
 						updatedComment = true
-						comment(isPass, isBlack, score.RE)
+						comment(isAPass, isBlack, score.RE)
 					}
 					else /*don't want to treat succint and verbose at the same time*/ if (node.SC & 2 === 2) {
 						updatedComment = true
-						comment(isPass, isBlack,
+						comment(isAPass, isBlack,
 							`Black: ${score.totalWhiteDead
 							+ score.totalWhiteCaptured
 							+ score.totalBlackTerritory} = ${score.totalBlackTerritory} territory + ${score.totalWhiteDead + score.totalWhiteCaptured} prisoners
@@ -793,7 +840,7 @@ White: ${score.totalBlackDead
 					}
 				}
 				if (!updatedComment)
-					comment(isPass, isBlack)
+					comment(isAPass, isBlack)
 
 				// move to next node
 				node = goThroughTree(state)
