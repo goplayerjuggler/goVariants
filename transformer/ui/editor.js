@@ -1,27 +1,42 @@
 /* eslint-env browser */
 /* global GoBoardApi */
 /* eslint no-console: 0 */
-document.goVariantsEditor = function (editorOptions) {
-	editorOptions = { rootId: 'sgfEditor', showExtras: true, ...editorOptions }
-	var { rootId, showExtras } = editorOptions
+/**
+ * A function for rendering the viewer/editor
+ * @param {object} [options=]
+ * @param {boolean} [options.inhibitForRoot = true] When flagged, the function does nothing when the current window's location.path is empty. (Useful for preventing the script from running when several posts are displayed at the home page of the blog.) 
+*/
+
+let goVariantsEditor = function (editorOptions) {
+	editorOptions = { rootId: 'sgfEditor', showExtras: true, inhibitForRoot:true, ...editorOptions }
+	let { rootId, showExtras } = editorOptions
 		, editorTemplate = require('./editor.jsx')
 		, go_variants_transformer = require('../src/transformer')
-	// document.viewer = {}
-	// var viewer = document.viewer
-	var viewer = {}
+		,  getElementByIdSuffix = (suffix) => document.getElementById(rootId + '_' + suffix)
+		,  viewer = {}
+	
 	if (viewer.ran) return
 	viewer.ran = true//just run this function once
 
-	document.getElementById(rootId).appendChild(editorTemplate(rootId))
+	//startup
+	let optionsNode = document.querySelectorAll(
+		`#${rootId} .go-variants-options`)
+	if (optionsNode.length > 0) {
+		let options = JSON.parse(optionsNode[0].innerText)
+		editorOptions = {... editorOptions, ... options}
+	}
+	if (editorOptions.inhibitForRoot && location.pathname === '') return
 
-	var getElementByIdSuffix = (suffix) => document.getElementById(rootId + '_' + suffix)
+	document.getElementById(rootId).appendChild(editorTemplate(editorOptions))
+
+	
 
 
 	getElementByIdSuffix('updateButton').addEventListener('click', updateVariantSgf)
 
 		;[].forEach.call(document.querySelectorAll(`#${rootId}_viewerControls input[type=button]`), function (el) {
 			el.addEventListener('click', function (e) {
-				var target = e.target || e.srcElement
+				let target = e.target || e.srcElement
 				showBoard({ panningDirection: target.value })
 			})
 		})
@@ -65,7 +80,7 @@ document.goVariantsEditor = function (editorOptions) {
 	getElementByIdSuffix('viewerControls').style.display = "none"
 
 	//startup
-	var inputSgfNode = document.querySelectorAll(
+	let inputSgfNode = document.querySelectorAll(
 		// `#${rootId} .go-variants-data:first-of-type`)
 		`#${rootId} .go-variants-data`)
 	if (inputSgfNode.length > 0) {
@@ -93,10 +108,10 @@ document.goVariantsEditor = function (editorOptions) {
 
 	function showBoard(options) {
 		if (options === undefined) options = {}
-		var { tSgf, panningDirection, moveReference, reset } = options
+		let { tSgf, panningDirection, moveReference, reset } = options
 		if (reset || !viewer.offset) viewer.offset = [0, 0]
 		if (panningDirection) {
-			var right = viewer.offset[0], up = viewer.offset[1]
+			let right = viewer.offset[0], up = viewer.offset[1]
 			switch (panningDirection) {
 
 				case "↑":
@@ -136,13 +151,13 @@ document.goVariantsEditor = function (editorOptions) {
 			tSgf = '(;GM[1]FF[4]CA[UTF-8]AP[go-variants-transformer]ST[0]SZ[4]KM[0]HA[0]PB[Black]PW[White]C[Here is a small sample game of Toroidal Go. It ends in a seki.];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd];B[ca];W[cd];B[db];W[dc];B[cc];MA[ba]C[It’s a seki; neither player should play at X now - if they do, they put their own stones in atari. This is shown in the next two variations.]W[da](;B[ba];W[cb])(;B[];W[ba];B[ad]))'//forked from sample7
 			getElementByIdSuffix("sgfIn").value = tSgf
 		}
-		var wraparound = Number(getElementByIdSuffix('wraparoundSelect').value)
+		let wraparound = Number(getElementByIdSuffix('wraparoundSelect').value)
 			, wraparoundMarkersType = Number(getElementByIdSuffix('wraparoundBorderSelect').value)
 			, coordinatesType = Number(getElementByIdSuffix('coordinateSelect').value)
 			, addComments = getElementByIdSuffix('addComments').checked
 			, sgf = ''
 		try {
-			var transformer = go_variants_transformer({
+			let transformer = go_variants_transformer({
 				addComments,
 				wraparoundMarkersType,
 				coordinatesType,
@@ -163,7 +178,7 @@ document.goVariantsEditor = function (editorOptions) {
 		viewer.sgf = sgf
 		if (!panningDirection) {
 
-			var oGameTree = GoBoardApi.Create_GameTree()
+			let oGameTree = GoBoardApi.Create_GameTree()
 			viewer.oGameTree = oGameTree
 
 			GoBoardApi.Set_OnGameTreeModifiedCallback(oGameTree, () => { })
@@ -226,21 +241,21 @@ document.goVariantsEditor = function (editorOptions) {
 		return result && /SZ\[\d+]/.test(sgf)
 	}
 	function updateVariantSgf() {
-		var sgf = GoBoardApi.Save_Sgf(viewer.oGameTree)
+		let sgf = GoBoardApi.Save_Sgf(viewer.oGameTree)
 		if (sgf == viewer.sgf) {
 			return
 		}
 		viewer.sgf = sgf
-		var moveReference = GoBoardApi.Get_MoveReference(viewer.oGameTree, false)
-		// var options = viewer.transformer.options
+		let moveReference = GoBoardApi.Get_MoveReference(viewer.oGameTree, false)
+		// let options = viewer.transformer.options
 		// options.boardDimensions = options.boardDimensions.map((x) => x - 2 * options.projectionSettings.wraparound) 
-		var tSgf = viewer.transformer.inverseTransform(sgf)
+		let tSgf = viewer.transformer.inverseTransform(sgf)
 		getElementByIdSuffix("sgfIn").value = tSgf
 		showBoard({ tSgf, moveReference })
 	}
 
 	function getLittleGolemSgfAndShowBoard() {
-		var gameId = getElementByIdSuffix('littleGolemId').value
+		let gameId = getElementByIdSuffix('littleGolemId').value
 		if (gameId === '') {
 			//gameId = '1860795'
 			alert('enter the ID of a game from LittleGolem, e.g. “1860795”')
@@ -248,14 +263,14 @@ document.goVariantsEditor = function (editorOptions) {
 		}
 		gameId = gameId.trim()
 
-		var proxyurl = "https://cors-anywhere.herokuapp.com/"
-		var url = `http://littlegolem.net/servlet/sgf/${gameId}/game${gameId}.sgf`
+		let proxyurl = "https://cors-anywhere.herokuapp.com/"
+		let url = `http://littlegolem.net/servlet/sgf/${gameId}/game${gameId}.sgf`
 		if (!/^\d+$/g.test(gameId)) {
 			alert('invalid ID')
 			return
 		}
 		getElementByIdSuffix('goLgMsg').innerText = 'loading…'
-		var myHeaders = new Headers({
+		let myHeaders = new Headers({
 			"Content-Type": "application/sgf"
 		});
 		const failMsg = 'load from littel Golem failed'
@@ -293,9 +308,10 @@ document.goVariantsEditor = function (editorOptions) {
 
 
 }
+document.goVariantsEditor = goVariantsEditor
 document.addEventListener('DOMContentLoaded', function () {
 	[].forEach.call(document.querySelectorAll('.go-variants-editor'), function (el) {
-		var options = { rootId: el.id }
+		let options = { rootId: el.id }
 		if (el.classList.contains('go-variants-hide-extras')) {
 			options.showExtras = false
 		}

@@ -379,7 +379,7 @@ function transformer(options
 		}
 
 		if (typeof wrappedGame === 'string') {
-			var smartgamer = require('smartgamer')
+			let smartgamer = require('smartgamer')
 			wrappedGame = smartgamer(smartgame.parse(wrappedGame))
 		}
 
@@ -675,12 +675,12 @@ function transformer(options
 			if (!options.addComments && !score)
 				return
 
-			let r = !options.addComments ?
+			let r = (!options.addComments && !score) ?
 				''
 				: 'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
 				//let r =  'Black captures: ' + tGo.board.captured[1] + '\r\nWhite captures: ' + tGo.board.captured[0]
 				+ (!isPass ? '' : '\n' + (isBlack ? 'Black passes' : 'White passes'))
-				+ (!score ? '' : '\n' + `result: ${score.displayResult}`)
+				+ (!score ? '' : '\n' + `result: ${score}`)
 
 			r += '\n--(the content above was generated automatically by GoVariantsTransformer)--'
 			r += (node.C === undefined ? '' : '\n' + node.C)
@@ -790,8 +790,11 @@ function transformer(options
 							points = [node[sgfProperty]]
 						}
 						if (node.SC && sgfProperty === 'MA') {
-							stonesMarkedForScoring = { ...points }
+							stonesMarkedForScoring =
+									points
+										.map(translateCoordinates)
 						}
+
 						points =
 							// _.chain(points)
 							// 	.map(translateCoordinates)
@@ -807,7 +810,7 @@ function transformer(options
 								.map($.coords2String)
 						node[sgfProperty] = points
 					})
-				if (options.addMoveNumber) 
+				if (options.addMoveNumber)
 					node.MN = currentPath.m
 
 				/*
@@ -820,22 +823,23 @@ function transformer(options
 				*/
 				let updatedComment = false
 				if (node.SC) {
-					let score = engine.score(stonesMarkedForScoring)
-					if (node.SC & 1 === 1) {
+					tGo.rules.komi = parseFloat(wrappedGame.game.nodes[0].KM)
+
+					let score = tGo.board.score(stonesMarkedForScoring)
+						, scoreOption = parseInt(node.SC)
+					if ((scoreOption & 1) === 1) {
 						updatedComment = true
 						comment(isAPass, isBlack, score.RE)
 					}
-					else /*don't want to treat succint and verbose at the same time*/ if (node.SC & 2 === 2) {
-						updatedComment = true
-						comment(isAPass, isBlack,
-							`Black: ${score.totalWhiteDead
-							+ score.totalWhiteCaptured
-							+ score.totalBlackTerritory} = ${score.totalBlackTerritory} territory + ${score.totalWhiteDead + score.totalWhiteCaptured} prisoners
-White: ${score.totalBlackDead
-							+ score.totalBlackCaptured
-							+ score.totalWhiteTerritory} = ${score.totalWhiteTerritory} territory + ${score.totalBlackDead + score.totalBlackCaptured} prisoners +${engine.rules.komi} komi`)
-					}
-					if (node.SC & 4 === 4) {
+					else /*don't want to treat succint and verbose at the same time*/
+						if ((scoreOption & 2) === 2) {
+							updatedComment = true
+							comment(isAPass, isBlack,
+								`Black: ${score.blackScore} = ${score.totalBlackTerritory} territory + ${score.totalWhiteDead + score.totalWhiteCaptured} prisoners
+White: ${score.whiteScore} = ${score.totalWhiteTerritory} territory + ${score.totalBlackDead + score.totalBlackCaptured} prisoners + ${tGo.rules.komi} komi
+Result: ${score.RE}`)
+						}
+					if ((scoreOption & 4) === 4) {
 						wrappedGame.game.nodes[0].RE = score.RE
 					}
 				}

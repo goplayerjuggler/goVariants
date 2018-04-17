@@ -1,4 +1,6 @@
-module.exports = (rootId) =>
+module.exports = (options) => {
+    let rootId = options.rootId
+    return (
     <div>
 
         <style type="text/css">
@@ -122,4 +124,5 @@ display: none !important;
 
         </div>
         <div id={`${rootId}_playerDiv`} style="position:relative; height: 75vh;width: 85vw"></div>
-    </div>
+    </div>)
+}
