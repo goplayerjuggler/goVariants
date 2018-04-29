@@ -48,39 +48,39 @@
  * @param {boolean} [options.transformToString=true] When set to false, the output is an object (an instance of a Smartgame).
  * @public
  * @return {object} An object exposing functions for going back and forth between SGF for a standard viewer, and SGF for a game of toroidal Go
- *//*todos:
+ */
+/*todos:
 opions.placesToCount Default: undefined. May be: 'last'|[countInfo1, .. countInfo1]. countInfo is a path plus an array with a point for each chain to be considered as dead. {path, deadChains: [...]}
 options.projectionSettings.rotation {integer} Default value: 0. Allowed values: 0 .. 3
 options.projectionSettings.normalizePlace array, or one of: C, TL TR BL BR (centre, top left, top right, bottom left, bottom right)
 options.projectionSettings.normalize {boolean} 
 
 */
-function transformer(options
-) {
+function transformer(options) {
 	'use strict';
 	const
-		_flatten = require('lodash/flatten')
-		, _uniqBy = require('lodash/uniqBy')
-		, _fi = require('lodash/findIndex')
-		, modulo = (x, y) => (x % y + y) % y
-		, sourceSgfMessage = 'source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application'
+		_flatten = require('lodash/flatten'),
+		_uniqBy = require('lodash/uniqBy'),
+		_fi = require('lodash/findIndex'),
+		modulo = (x, y) => (x % y + y) % y,
+		sourceSgfMessage = 'source sgf for toroidal Go has been adapted by go-variants-transformer so as to be rendered by any standard Go application'
 	options = {
-		boardDimensions: [11, 11]
-		, transformToString: true
-		, addComments: true
-		, coordinatesType: 0
-		, wraparoundMarkersType: 1
-		, moveType: 2
-		, markLastMove: null
-		//above are the defaults
-		, ...options
+		boardDimensions: [11, 11],
+		transformToString: true,
+		addComments: true,
+		coordinatesType: 0,
+		wraparoundMarkersType: 1,
+		moveType: 2,
+		markLastMove: null
+			//above are the defaults
+			,
+		...options
 	}
-	options.projectionSettings =
-		{
-			wraparound: 4,
-			offset: [0, 0],
-			...options.projectionSettings
-		}
+	options.projectionSettings = {
+		wraparound: 4,
+		offset: [0, 0],
+		...options.projectionSettings
+	}
 
 	if (options.addPasses === undefined)
 		options.addPasses = true;
@@ -98,12 +98,12 @@ function transformer(options
 
 	let $ = {}
 		// , _markersForWraparound = null
-		, coordinateLabels = function (i) {
+		,
+		coordinateLabels = function (i) {
 			// 97..122 and 65..90
 			return String.fromCharCode(i < 26 ? i + 97 : i + 39)
 			//65 - 26 =
-		}
-		,
+		},
 		translateCoordinate = (c) => {
 			let r = c.charCodeAt(0)
 			return r >= 97 ? r - 97 : r - 26
@@ -114,12 +114,13 @@ function transformer(options
 		 * @return array [x, y]
 		 **/
 		translateCoordinates = (alphaCoordinates) => {
-			return [translateCoordinate(alphaCoordinates.substring(0, 1))
-				, translateCoordinate(alphaCoordinates.substring(1, 2))]
+			return [translateCoordinate(alphaCoordinates.substring(0, 1)), translateCoordinate(alphaCoordinates.substring(1, 2))]
 
 		}
 
-
+	if (options.wraparoundAndCoords) {
+		$.wraparoundAndCoords = options.wraparoundAndCoords
+	}
 	$.coordinateLabels = coordinateLabels
 	$.translateCoordinates = translateCoordinates
 	/**
@@ -146,14 +147,14 @@ function transformer(options
 		*/
 
 		const m //= options.boardDimensions[0]
-			= options.boardDimensions[isVertical ? 1 : 0]
+		= options.boardDimensions[isVertical ? 1 : 0]
 
 			, r = []
 
-		for (let i = Math.ceil(-(wraparound + a) / m); i <= (wraparound + m - 1 - a) / m; i++)
+		for (var i = Math.ceil(-(wraparound + a) / m); i <= (wraparound + m - 1 - a) / m; i++)
 			r.push(wraparound + a + i * m)
 
-		if (options.moveType === 2) {//ensure the last item in the result is the one inside the main board area
+		if (options.moveType === 2) { //ensure the last item in the result is the one inside the main board area
 			r.sort((x, y) => {
 				if (x >= wraparound && x < wraparound + m) return 1
 				if (y >= wraparound && y < wraparound + m) return -1
@@ -172,8 +173,7 @@ function transformer(options
 	function inverseProjectOnFlat(points, multiple) {
 		if (!Array.isArray(points[0])) points = [points]
 		if (!multiple)
-			return [modulo(points[0][0] - options.projectionSettings.offset[0] - wraparound, options.boardDimensions[0])
-				, modulo(points[0][1] - options.projectionSettings.offset[1] - wraparound, options.boardDimensions[1])]
+			return [modulo(points[0][0] - options.projectionSettings.offset[0] - wraparound, options.boardDimensions[0]), modulo(points[0][1] - options.projectionSettings.offset[1] - wraparound, options.boardDimensions[1])]
 		return _uniqBy(points.map(x => inverseProjectOnFlat([x])), (x) => `${x[0]}_${x[1]}`)
 	}
 	$.inverseProjectOnFlat = inverseProjectOnFlat
@@ -184,11 +184,11 @@ function transformer(options
 	 * @returns {Array}
 	 */
 	function projectOnFlat(p) {
-		const a = $.projectOnLine(p[0] + options.projectionSettings.offset[0])
-			, b = $.projectOnLine(p[1] + options.projectionSettings.offset[1], true)
-			, r = []
-		for (let i = 0; i < a.length; i++)
-			for (let j = 0; j < b.length; j++)
+		const a = $.projectOnLine(p[0] + options.projectionSettings.offset[0]),
+			b = $.projectOnLine(p[1] + options.projectionSettings.offset[1], true),
+			r = []
+		for (var i = 0; i < a.length; i++)
+			for (var j = 0; j < b.length; j++)
 				r.push([a[i], b[j]])
 		return r
 	}
@@ -198,6 +198,10 @@ function transformer(options
 	$.modY = (y) => modulo(y, options.boardDimensions[1])
 
 	let setUpMarkers = () => {
+
+		if (options.wraparoundAndCoords) {
+			return
+		}
 		$.wraparoundAndCoords = []
 
 		// $.getMarkersForWraparound = function (){
@@ -215,24 +219,24 @@ function transformer(options
 
 			let board = []
 			if ([1, 2, 4].indexOf(options.wraparoundMarkersType) > -1) {
-				let middles = options.wraparoundMarkersType > 1 ?
-					[Math.floor((m - 1) / 2) + 1, Math.ceil((m - 1) / 2) + 1,
-					Math.floor((n - 1) / 2) + 1, Math.ceil((n - 1) / 2) + 1]
-					: [-1, 99, -1, 99]
-				for (let i = 1; i <= m; i++) {
+				let middles = options.wraparoundMarkersType > 1 ? [Math.floor((m - 1) / 2) + 1, Math.ceil((m - 1) / 2) + 1,
+						Math.floor((n - 1) / 2) + 1, Math.ceil((n - 1) / 2) + 1
+					] :
+					[-1, 99, -1, 99]
+				for (var i = 1; i <= m; i++) {
 					if (i < middles[0] || i > middles[1]) {
 						continue
 					}
-					let label = '─'//U+2500 Box Drawings Light Horizontal
+					let label = '─' //U+2500 Box Drawings Light Horizontal
 
 					board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound - 1) + ":" + label)
 					board.push(coordinateLabels(wraparound - 1 + i) + coordinateLabels(wraparound + m) + ":" + label)
 				}
-				for (let i = 1; i <= n; i++) {
+				for (var i = 1; i <= n; i++) {
 					if (i < middles[2] || i > middles[3]) {
 						continue
 					}
-					let label = '│'//unicode too
+					let label = '│' //unicode too
 					board.push(coordinateLabels(wraparound - 1) + coordinateLabels(wraparound - 1 + i) + ":" + label)
 					board.push(coordinateLabels(wraparound + n) + coordinateLabels(wraparound - 1 + i) + ":" + label)
 				}
@@ -246,7 +250,7 @@ function transformer(options
 			}
 
 			if (options.coordinatesType > 0 && wraparound > 1) {
-				for (let i = 1; i < 2 * wraparound + m - 1; i++) {
+				for (var i = 1; i < 2 * wraparound + m - 1; i++) {
 
 					let coordIndex = $.modX(-options.projectionSettings.offset[0] - wraparound + i)
 
@@ -256,14 +260,14 @@ function transformer(options
 						coordIndex++
 					}
 					let label =
-						options.coordinatesType < 3
-							? coordinateLabels(coordIndex).toUpperCase()
-							: '' + (coordIndex + 1)
+						options.coordinatesType < 3 ?
+						coordinateLabels(coordIndex).toUpperCase() :
+						'' + (coordIndex + 1)
 					board.push(coordinateLabels(i) + coordinateLabels(0) + ":" + label)
 					board.push(coordinateLabels(i) + coordinateLabels(2 * wraparound + n - 1) + ":" + label)
 				}
 				let cjkNumbers = '一二三四五六七八九'
-				for (let i = 1; i < 2 * wraparound + n - 1; i++) {
+				for (var i = 1; i < 2 * wraparound + n - 1; i++) {
 					/*
 					0		-w
 					...
@@ -274,9 +278,9 @@ function transformer(options
 					
 					*/
 					let coordIndex =
-						options.coordinatesType < 3
-							? $.modY(n + options.projectionSettings.offset[1] + wraparound - i - 1)
-							: $.modY(i - wraparound - options.projectionSettings.offset[1])
+						options.coordinatesType < 3 ?
+						$.modY(n + options.projectionSettings.offset[1] + wraparound - i - 1) :
+						$.modY(i - wraparound - options.projectionSettings.offset[1])
 					let label = ''
 					switch (options.coordinatesType) {
 						case 1:
@@ -312,8 +316,13 @@ function transformer(options
 		}
 
 	function goThroughTree(state) {
-		let { wrappedGame, node, pending, currentPath, tGo } = state
-			, nbVariations = wrappedGame.variations().length
+		let {
+			wrappedGame,
+			node,
+			pending,
+			currentPath,
+			tGo
+		} = state, nbVariations = wrappedGame.variations().length
 		if (currentPath.m > 1000) throw new Error('seem to be stuck!');
 		state.hasSiblings = nbVariations > 0
 		if (state.hasSiblings) {
@@ -322,17 +331,23 @@ function transformer(options
 			// else
 			// currentPath[m] += 1
 			// currentPath.m += 1
-			for (let i = nbVariations - 1; i > 0; i--)
+			for (var i = nbVariations - 1; i > 0; i--)
 			//pile up in this order, as it's FILO and we want the last variation, which may contain a mode added by CGoboard to go last
 			{
-				let pathForLater = { ...currentPath }//Object.assign({}, currentPath)
+				let pathForLater = { ...currentPath
+				} //Object.assign({}, currentPath)
 				pathForLater[currentPath.m + 1] = i
 				pathForLater.m += 1
 
 				if (tGo !== undefined)
-					pending.push({ path: pathForLater, tGoData: tGo.exportData() })
+					pending.push({
+						path: pathForLater,
+						tGoData: tGo.exportData()
+					})
 				else
-					pending.push({ path: pathForLater })
+					pending.push({
+						path: pathForLater
+					})
 
 			}
 			state.node = wrappedGame.next().node()
@@ -342,10 +357,10 @@ function transformer(options
 		}
 
 		let nextNode = wrappedGame.next().node()
-		if (node === nextNode) {//at a leaf:
+		if (node === nextNode) { //at a leaf:
 			if (pending.length === 0) {
 				state.node = null
-				return state.node//finished
+				return state.node //finished
 			}
 			let fromStack = pending.pop()
 			state.hasSiblings = true
@@ -357,8 +372,7 @@ function transformer(options
 			state.node = wrappedGame.goTo(fromStack.path).node()
 			state.currentPath = fromStack.path
 			return state.node
-		}
-		else {
+		} else {
 			currentPath.m += 1
 			state.node = nextNode
 			return state.node
@@ -383,18 +397,19 @@ function transformer(options
 			wrappedGame = smartgamer(smartgame.parse(wrappedGame))
 		}
 
-		let node = wrappedGame.first().node()
-			, pending = []
-			, currentPath = { m: 0 }
-			, cleanerRegEx = /^[a-zA-Z :0-9\-(\r\n]+GoVariantsTransformer\)--[\r\n]*/
-			, cleanComments = () => {
+		let node = wrappedGame.first().node(),
+			pending = [],
+			currentPath = {
+				m: 0
+			},
+			cleanerRegEx = /^[a-zA-Z :0-9\-(\r\n]+GoVariantsTransformer\)--[\r\n]*/,
+			cleanComments = () => {
 				if (node.C !== undefined) {
 					node.C = node.C.replace(cleanerRegEx, '')
 				}
 				if (node.C === '')
 					delete node.C
-			}
-			,
+			},
 			/**
 			 * Function to:
 			 * 	- remove the “border” (unicode symbols added by the transform to indicate where the wraparound area meets the main grid).
@@ -412,14 +427,15 @@ function transformer(options
 					labels =
 						_uniqBy(
 							labels
-								.map(function (x) { return x.split(':', 2) })//assume the label doesn’t contain “:”
-								.map((x) => [$.coords2String($.inverseProjectOnFlat(translateCoordinates(x[0]))), x[1]])
-							, (x) => x[0])
-							.map((x) => `${x[0]}:${x[1]}`)
+							.map(function (x) {
+								return x.split(':', 2)
+							}) //assume the label doesn’t contain “:”
+							.map((x) => [$.coords2String($.inverseProjectOnFlat(translateCoordinates(x[0]))), x[1]]), (x) => x[0])
+						.map((x) => `${x[0]}:${x[1]}`)
 
 
 					// labels = []
-					// for (let i = 0; i < labels2.length; i++)
+					// for (var i = 0; i < labels2.length; i++)
 					// 	labels = labels.concat(labels2)
 				}
 
@@ -445,7 +461,11 @@ function transformer(options
 		}
 
 		let state = {
-			wrappedGame, node, pending, currentPath, siblingMoves: {}//, parentsWithChildToDelete: [] 
+			wrappedGame,
+			node,
+			pending,
+			currentPath,
+			siblingMoves: {} //, parentsWithChildToDelete: [] 
 		}
 
 		node = goThroughTree(state)
@@ -454,14 +474,14 @@ function transformer(options
 			cleanComments()
 
 			const
-				isBlack = node.AB !== undefined || node.B !== undefined
-				, addedStones = isBlack ? node.AB : node.AW
-				, playedStone = isBlack ? node.B : node.W
-				, move = addedStones ? addedStones : playedStone
-				, moveAsArray = Array.isArray(move) ? move : [move]
-				, isAPass = isBlack ? node.B === '' : node.W === ''
-				, moveHasCoords = move !== undefined && move !== ''
-				, coords = !moveHasCoords ? undefined : $.coords2String($.inverseProjectOnFlat(moveAsArray.map(translateCoordinates)))
+				isBlack = node.AB !== undefined || node.B !== undefined,
+				addedStones = isBlack ? node.AB : node.AW,
+				playedStone = isBlack ? node.B : node.W,
+				move = addedStones ? addedStones : playedStone,
+				moveAsArray = Array.isArray(move) ? move : [move],
+				isAPass = isBlack ? node.B === '' : node.W === '',
+				moveHasCoords = move !== undefined && move !== '',
+				coords = !moveHasCoords ? undefined : $.coords2String($.inverseProjectOnFlat(moveAsArray.map(translateCoordinates)))
 
 			//alter the node
 
@@ -471,9 +491,10 @@ function transformer(options
 			is made on a point where the next node is AB or AW.  
 			*/
 			if (state.hasSiblings) {
-				let pathForParent = { ...wrappedGame.path } //Object.assign({}, wrappedGame.path)
+				let pathForParent = { ...wrappedGame.path
+				} //Object.assign({}, wrappedGame.path)
 				pathForParent.m--
-				delete pathForParent[pathForParent.m]
+					delete pathForParent[pathForParent.m]
 				pathForParent = wrappedGame.pathTransform(pathForParent)
 				// wrappedGame.previous()
 				if (state.siblingMoves[pathForParent] === undefined) {
@@ -481,13 +502,12 @@ function transformer(options
 				}
 				if (addedStones) {
 					state.siblingMoves[pathForParent].push(coords)
-				}
-				else
-					if (playedStone && state.siblingMoves[pathForParent].indexOf(coords) > -1) {
+				} else
+				if (playedStone && state.siblingMoves[pathForParent].indexOf(coords) > -1) {
 
-						// state.parentsWithChildToDelete.push(pathForParent)
-						node.XX = "inverseTransformToDelete"
-					}
+					// state.parentsWithChildToDelete.push(pathForParent)
+					node.XX = "inverseTransformToDelete"
+				}
 				// wrappedGame.goTo(currentPath)
 			}
 
@@ -504,25 +524,26 @@ function transformer(options
 				node[isBlack ? 'B' : 'W'] = coords
 			}
 
-			;/*note: this next semicolon is needed! */[// eslint-disable-line no-extra-semi
+			; /*note: this next semicolon is needed! */
+			[ // eslint-disable-line no-extra-semi
 				//'CR',todo: add if not marking the move
-				'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
-					// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
-					if (node[sgfProperty] === undefined) return
-					let points = []
-					if (Array.isArray(node[sgfProperty])) {
-						points = node[sgfProperty]
-					}
-					else {
-						points = [node[sgfProperty]]
-					}
-					points =
-						$.inverseProjectOnFlat(
-							points.map(translateCoordinates), true
-						)
-							.map($.coords2String)
-					node[sgfProperty] = points
-				})
+				'DD', 'MA', 'SL', 'SQ', 'TR'
+			].forEach(function (sgfProperty) {
+				// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
+				if (node[sgfProperty] === undefined) return
+				let points = []
+				if (Array.isArray(node[sgfProperty])) {
+					points = node[sgfProperty]
+				} else {
+					points = [node[sgfProperty]]
+				}
+				points =
+					$.inverseProjectOnFlat(
+						points.map(translateCoordinates), true
+					)
+					.map($.coords2String)
+				node[sgfProperty] = points
+			})
 			// move to next node
 			node = goThroughTree(state)
 		}
@@ -547,28 +568,30 @@ function transformer(options
 			if (sequence.sequences) {
 
 				let
-					sequences = sequence.sequences
-					, index = _fi(sequences, (seq) => seq.nodes[0].XX === 'inverseTransformToDelete')
-					, tmpI = 0, max = sequences.length
+					sequences = sequence.sequences,
+					index = _fi(sequences, (seq) => seq.nodes[0].XX === 'inverseTransformToDelete'),
+					tmpI = 0,
+					max = sequences.length
 				while (index > -1) {
 					sequences.splice(index, 1)
 					index = _fi(sequences, (seq) => seq.nodes[0].XX === 'inverseTransformToDelete')
 					tmpI++
 					if (tmpI > max) throw new Error('seem to be stuck!');
 				}
-				for (let index2 = 0; index2 < sequences.length; index2++) {
+				for (var index2 = 0; index2 < sequences.length; index2++) {
 					// deleteNodes(sequences[index2].nodes[sequences[index2].nodes.length - 1]);
 					deleteNodes(sequences[index2]);
 
 				}
-			}
-			else if (sequence.nodes)
+			} else if (sequence.nodes)
 				deleteNodes(sequence.nodes[sequence.nodes.length - 1])
 		}
 		deleteNodes(wrappedGame.game)
 
 		if (options.transformToString)
-			return smartgame.generate({ gameTrees: [wrappedGame.game] });
+			return smartgame.generate({
+				gameTrees: [wrappedGame.game]
+			});
 		else return wrappedGame
 
 	}
@@ -586,8 +609,7 @@ function transformer(options
 	function transform(
 		tSgf //eg 11x11 sgf from LittleGolem
 		, tGo //app implementing t-Go
-		, smartgame
-		, smartgamer) {
+		, smartgame, smartgamer) {
 
 		if (tGo === undefined) {
 			//  tGo = require('../dist/node_modules/go-variants-engine/src/engine.min.js')({
@@ -611,12 +633,14 @@ function transformer(options
 			smartgamer = require('smartgamer')
 		}
 		// console.log(tGo)
-		let parsed = smartgame.parse(tSgf)
-			, wrappedGame = smartgamer(parsed)
-			, node = wrappedGame.node()
-			, passes = 0
-			, pending = []
-			, currentPath = { m: 0 }
+		let parsed = smartgame.parse(tSgf),
+			wrappedGame = smartgamer(parsed),
+			node = wrappedGame.node(),
+			passes = 0,
+			pending = [],
+			currentPath = {
+				m: 0
+			}
 		if (node.SZ !== undefined) {
 			let sz = Number(node.SZ)
 			// sz+= 2*options.projectionSettings.wraparound
@@ -625,9 +649,12 @@ function transformer(options
 			setUpMarkers()
 		}
 		if (node.KM !== undefined) {
-			options.rules = { komi: parseFloat(node.KM), ...options.rules }
+			options.rules = {
+				komi: parseFloat(node.KM),
+				...options.rules
+			}
 		}
-		node.SZ = "" + (options.boardDimensions[0] + 2 * options.projectionSettings.wraparound)//not sure how to make a rectangular goban!
+		node.SZ = "" + (options.boardDimensions[0] + 2 * options.projectionSettings.wraparound) //not sure how to make a rectangular goban!
 		//offset modulo
 		options.projectionSettings.offset[0] = modulo(options.projectionSettings.offset[0], options.boardDimensions[0])
 		options.projectionSettings.offset[1] = modulo(options.projectionSettings.offset[1], options.boardDimensions[1])
@@ -640,13 +667,19 @@ function transformer(options
 					labels = [labels]
 
 				/* jshint loopfunc: true */
-				let labels2 = labels//_.chain(labels)
-					.map(function (x) { return x.split(':', 2) })//assume the label doesn’t contain “:”
-					.map(function (x) { return [translateCoordinates(x[0]), x[1]] })
-					.map(function (x) { return [$.projectOnFlat(x[0]), x[1]] })
+				let labels2 = labels //_.chain(labels)
+					.map(function (x) {
+						return x.split(':', 2)
+					}) //assume the label doesn’t contain “:”
+					.map(function (x) {
+						return [translateCoordinates(x[0]), x[1]]
+					})
+					.map(function (x) {
+						return [$.projectOnFlat(x[0]), x[1]]
+					})
 				// .value()
 				labels = []
-				for (let i = 0; i < labels2.length; i++)
+				for (var i = 0; i < labels2.length; i++)
 					labels = labels.concat(
 						labels2[i][0].map(function (x) {
 							return $.coords2String(x) + ":" + labels2[i][1]
@@ -669,18 +702,25 @@ function transformer(options
 		node.AP = "go-variants-transformer"
 
 
-		let state = { wrappedGame, node, pending, currentPath, tGo }
+		let state = {
+			wrappedGame,
+			node,
+			pending,
+			currentPath,
+			tGo
+		}
 
 		function comment(isPass, isBlack, score) {
 			if (!options.addComments && !score)
 				return
 
 			let r = (!options.addComments && !score) ?
-				''
-				: 'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
+				'' :
+				'move ' + state.currentPath.m + '\n' + 'White stones captured by Black: ' + tGo.board.captured[1] + '\nBlack stones captured by White: ' + tGo.board.captured[0]
 				//let r =  'Black captures: ' + tGo.board.captured[1] + '\r\nWhite captures: ' + tGo.board.captured[0]
-				+ (!isPass ? '' : '\n' + (isBlack ? 'Black passes' : 'White passes'))
-				+ (!score ? '' : '\n' + `result: ${score}`)
+				+
+				(!isPass ? '' : '\n' + (isBlack ? 'Black passes' : 'White passes')) +
+				(!score ? '' : '\n' + `result: ${score}`)
 
 			r += '\n--(the content above was generated automatically by GoVariantsTransformer)--'
 			r += (node.C === undefined ? '' : '\n' + node.C)
@@ -693,13 +733,13 @@ function transformer(options
 
 
 			let
-				isBlack = node.B !== undefined
-				, move = isBlack ? node.B : node.W
-				, isAPass = move === "" || (options.boardDimensions[0] === options.boardDimensions[1]
-					&& options.boardDimensions[0] <= 19
-					&& move === "tt" //weird SGF[3] way to show a pass move!
-				)
-				, stonesMarkedForScoring = []
+				isBlack = node.B !== undefined,
+				move = isBlack ? node.B : node.W,
+				isAPass = move === "" || (options.boardDimensions[0] === options.boardDimensions[1] &&
+					options.boardDimensions[0] <= 19 &&
+					move === "tt" //weird SGF[3] way to show a pass move!
+				),
+				stonesMarkedForScoring = []
 
 			if (move === undefined && !isAPass) {
 				node = goThroughTree(state)
@@ -717,10 +757,9 @@ function transformer(options
 				// }
 				passes++
 				if (passes >= 1000)
-					break//just in case!
+					break //just in case!
 				node = goThroughTree(state)
-			}
-			else {
+			} else {
 				const coords = translateCoordinates(move)
 				let playResult = null
 				// run move through tGo and update game accordingly
@@ -728,22 +767,22 @@ function transformer(options
 					playResult = tGo.play(isBlack ? 'b' : 'w', coords)
 
 				} catch (error) {
-					if (error.message !== 'point is not empty' /*ignore this - it happens with some sgf from littleGolem. Todo: look into scoring the position here. */)
+					if (error.message !== 'point is not empty' /*ignore this - it happens with some sgf from littleGolem. Todo: look into scoring the position here. */ )
 						throw (error)
 				}
 				const projectedCoords = $.projectOnFlat(coords)
-				let toAdd = playResult === null ? [] : projectedCoords.map($.coords2String)
-					, toRemove = playResult === null ? [] :
-						// _.chain(playResult.removed)
-						// 	.flatten(true)
-						// 	.map($.projectOnFlat)
-						// 	.flatten(true)
-						// 	.map($.coords2String)
-						// 	.value()
-						_flatten(
-							_flatten(playResult.removed)
-								.map($.projectOnFlat))
-							.map($.coords2String)
+				let toAdd = playResult === null ? [] : projectedCoords.map($.coords2String),
+					toRemove = playResult === null ? [] :
+					// _.chain(playResult.removed)
+					// 	.flatten(true)
+					// 	.map($.projectOnFlat)
+					// 	.flatten(true)
+					// 	.map($.coords2String)
+					// 	.value()
+					_flatten(
+						_flatten(playResult.removed)
+						.map($.projectOnFlat))
+					.map($.coords2String)
 
 				//alter the node
 				if (options.moveType === 2) {
@@ -769,47 +808,47 @@ function transformer(options
 				if (toRemove.length > 0)
 					node.AE = toRemove
 
-						/*
-						todo: other properties with board coordinates
-						Leave for now:
-						AR
-						LN
-						*/
+				/*
+				todo: other properties with board coordinates
+				Leave for now:
+				AR
+				LN
+				*/
 
-						;/*note this semicolon is needed! */
+				; /*note this semicolon is needed! */
 				[
 					//'CR',todo: add if not marking the move
-					'DD', 'MA', 'SL', 'SQ', 'TR'].forEach(function (sgfProperty) {
-						// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
-						if (node[sgfProperty] === undefined) return
-						let points = []
-						if (Array.isArray(node[sgfProperty])) {
-							points = node[sgfProperty]
-						}
-						else {
-							points = [node[sgfProperty]]
-						}
-						if (node.SC && sgfProperty === 'MA') {
-							stonesMarkedForScoring =
-									points
-										.map(translateCoordinates)
-						}
+					'DD', 'MA', 'SL', 'SQ', 'TR'
+				].forEach(function (sgfProperty) {
+					// _.map(['DD','MA','SL','SQ','TR'], function(sgfProperty){
+					if (node[sgfProperty] === undefined) return
+					let points = []
+					if (Array.isArray(node[sgfProperty])) {
+						points = node[sgfProperty]
+					} else {
+						points = [node[sgfProperty]]
+					}
+					if (node.SC && sgfProperty === 'MA') {
+						stonesMarkedForScoring =
+							points
+							.map(translateCoordinates)
+					}
 
-						points =
-							// _.chain(points)
-							// 	.map(translateCoordinates)
-							// 	.map($.projectOnFlat)
-							// 	.flatten(true)
-							// 	.map($.coords2String)
-							// 	.value()
-							_flatten(
-								points
-									.map(translateCoordinates)
-									.map($.projectOnFlat)
-							)
-								.map($.coords2String)
-						node[sgfProperty] = points
-					})
+					points =
+						// _.chain(points)
+						// 	.map(translateCoordinates)
+						// 	.map($.projectOnFlat)
+						// 	.flatten(true)
+						// 	.map($.coords2String)
+						// 	.value()
+						_flatten(
+							points
+							.map(translateCoordinates)
+							.map($.projectOnFlat)
+						)
+						.map($.coords2String)
+					node[sgfProperty] = points
+				})
 				if (options.addMoveNumber)
 					node.MN = currentPath.m
 
@@ -825,13 +864,12 @@ function transformer(options
 				if (node.SC) {
 					tGo.rules.komi = parseFloat(wrappedGame.game.nodes[0].KM)
 
-					let score = tGo.board.score(stonesMarkedForScoring)
-						, scoreOption = parseInt(node.SC)
+					let score = tGo.board.score(stonesMarkedForScoring),
+						scoreOption = parseInt(node.SC)
 					if ((scoreOption & 1) === 1) {
 						updatedComment = true
 						comment(isAPass, isBlack, score.RE)
-					}
-					else /*don't want to treat succint and verbose at the same time*/
+					} else /*don't want to treat succint and verbose at the same time*/
 						if ((scoreOption & 2) === 2) {
 							updatedComment = true
 							comment(isAPass, isBlack,
@@ -851,7 +889,9 @@ Result: ${score.RE}`)
 			}
 		}
 		if (options.transformToString)
-			return smartgame.generate({ gameTrees: [wrappedGame.game] });
+			return smartgame.generate({
+				gameTrees: [wrappedGame.game]
+			});
 		else return wrappedGame
 	}
 	$.transform = transform

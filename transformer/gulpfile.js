@@ -77,24 +77,24 @@ function bundler(fileName, standalone) {
       .pipe(source(`${fileName}.min.js`))
       .pipe(buffer())
       .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(gutil.env.env === 'prod' ? babel() : gutil.noop())
-      .pipe(gutil.env.env === 'prod' ? uglify() : gutil.noop())
+      .pipe(process.env.NODE_ENV === 'prod' ? babel() : gutil.noop())
+      .pipe(process.env.NODE_ENV === 'prod' ? uglify() : gutil.noop())
       .on('error', gutil.log)
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('./dist'));
   }
 }
 
-gulp.task('bundle1', bundler('src/transform', 'transform'));
-gulp.task('bundle2', bundler('src/transformer', 'transformer'));
-gulp.task('bundle3', bundler('ui/editor', 'editor'));
+gulp.task('bundle-1', bundler('src/transform', 'transform'));
+gulp.task('bundle-2', bundler('src/transformer', 'transformer'));
+gulp.task('bundle-3', bundler('ui/editor', 'editor'));
 
-gulp.task('bundles', gulpsync.sync(['bundle1', 'bundle2', 'bundle3']))
+gulp.task('bundle-p', gulpsync.sync(['set-prod-node-env', 'bundle-1', 'bundle-2', 'bundle-3']))
 
 gulp.task('set-dev-node-env', function () {
   return process.env.NODE_ENV = 'development'
 })
 
 gulp.task('set-prod-node-env', function () {
-  return process.env.NODE_ENV = 'production'
+  return process.env.NODE_ENV = 'prod'
 })
