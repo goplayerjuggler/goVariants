@@ -64,8 +64,11 @@ The recommended way to use this library via an `editor` component, as in the [on
 #### Displaying a specific game
 
 The component can be loaded with a specific game displayed as follows. 
+
 1. If the main `div` contains an inner `div` with `class="go-variants-data"`, the game given by the SGF inside that inner `div` is used.
+
 1. Otherwise, if there is a HTTP GET parameter `sgf` in the URL, then that is used. “Hello world” example: [link](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?sgf=(%3BFF[4]+GM[1]+SZ[4]C[hello+world])).
+
 1. Otherwise, if there is a HTTP GET parameter `littlegolemid` in the URL, then that is used to load the game from [Little Golem](http://littlegolem.net). Example, with a real game: [Game #1873254](https://goplayerjuggler.github.io/goVariants/tGoEditor.html?littlegolemid=1873254).
 
 #### Notes:

@@ -1,4 +1,6 @@
-module.exports = (rootId) =>
+module.exports = (options) => {
+    let rootId = options.rootId
+    return (
     <div>
 
         <style type="text/css">
@@ -12,7 +14,7 @@ module.exports = (rootId) =>
 .item {
     background-color: #fff;
     display: inline-block;
-    margin: 0 0 1em;
+    margin: 0 0 0.5em;
     
     padding: 2px;
     border: 1px black solid;
@@ -121,5 +123,6 @@ display: none !important;
             </div>
 
         </div>
-        <div id={`${rootId}_playerDiv`} style="position:relative; height: 75vh;width: 85vw"></div>
-    </div>
+        <div id={`${rootId}_playerDiv`} style="position:relative; height: 75vh;width: 95vw"></div>
+    </div>)
+}
