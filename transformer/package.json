@@ -20,7 +20,8 @@
     "go-variants-engine": "file:../engine/",
     "lodash": "^4.17.4",
     "smartgame": "^0.1.5",
-    "smartgamer": "^0.1.5"
+    "smartgamer": "^0.1.5",
+    "goproject": "file:../../goproject/"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
