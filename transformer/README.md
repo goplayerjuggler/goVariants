@@ -25,7 +25,7 @@ The two main parts of this module are:
       In earlier versions of the viewer/editor UI component, the library [WGo.js](https://github.com/waltheri/wgo.js) was used – it still could be used for in read-only mode for reviewing games without variations. 
 
 -   For parsing and manipulating SGF data:
-      npm modules [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
+    [smartgame](https://github.com/neagle/smartgame) and [smartgamer](https://github.com/neagle/smartgamer)
 
 ## Usage - for HTML / Javascript developers
 

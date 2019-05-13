@@ -3,8 +3,8 @@
 /* eslint no-console: 0 */
 /**
  * A function for rendering the viewer/editor
- * @param {object} [options=]
- * @param {boolean} [options.inhibitForRoot = true] When flagged, the function does nothing when the current window's location.path is empty. (Useful for preventing the script from running when several posts are displayed at the home page of the blog.)
+ * @param {object} [editorOptions=]
+ * @param {boolean} [editorOptions.inhibitForRoot = true] When flagged, the function does nothing when the current window's location.path is empty. (Useful for preventing the script from running when several posts are displayed at the home page of the blog.)
  */
 'use strict'
 let goVariantsEditor = function (editorOptions) {
@@ -386,10 +386,40 @@ let goVariantsEditor = function (editorOptions) {
 
 	document.getElementById(rootId).appendChild(editorTemplate(editorOptions))
 
-	getElementByIdSuffix('updateButton').addEventListener('click', () => {
+	let updateButtonFn = () => {
 		usePreviousWraparound = true
 		getSgfFromBoard()
 		usePreviousWraparound = false
+	}
+
+	getElementByIdSuffix('updateButton').addEventListener('click', updateButtonFn)
+	
+	getElementByIdSuffix('scoreButton').addEventListener('click', () => {
+		let textArea = getElementByIdSuffix('playerDivGB_Panel_CaT_Comments_TextArea')
+		textArea.focus()
+		textArea.click()
+		textArea.value = 'GoVariantsDoScoreHere' + textArea.value
+		textArea.blur()
+		setTimeout(updateButtonFn, 100);
+	//	oGameTree.Add_Comment('GoVariantsDoScoreHere')
+		// getElementByIdSuffix('playerDivGB_Panel_Navigator_Events').click()//focus()
+		// usePreviousWraparound = true
+		// getSgfFromBoard()
+		// usePreviousWraparound = false
+	})
+	
+	getElementByIdSuffix('scoreHelpButton').addEventListener('click', () => {
+		alert(`
+----Information related to scoring----
+
+0. In order for scoring to work, _marks_ (i.e. “X” marks, represented via “MA” in SGF) should be used to indicate dead stones. 
+1. For each connected (maximal) component of territory, made up of one or several empty intersections and one or several dead stones:
+	1. one (or more) of the dead stones should be _marked_.
+	2. if no dead stones are _marked_, then the area will not be scored as territory; it will be scored as a seki.
+2. If any empty point is marked, then scoring will not work.
+3. If stones of both colours are marked in an inconsistent manner, then scoring will not work.
+4. The scoring method used is Territory Scoring. (At some point Area Scoring may be implemented as well.)
+`)
 	})
 
 	;
@@ -511,7 +541,7 @@ let goVariantsEditor = function (editorOptions) {
 
 				// Examine the text in the response
 				response.text().then(function (sgf) {
-					if (!looksLikeSgf(sgf, 11 /*LG is always 11x11*/ )) {
+					if (!looksLikeSgf(sgf, 11 /*So far, LG is always 11x11*/ )) {
 						console.log('invalid SGF. Received:' + sgf)
 
 						getElementByIdSuffix('goLgMsg').innerText = failMsg
@@ -520,11 +550,12 @@ let goVariantsEditor = function (editorOptions) {
 					sgf = sgf.replace('SZ[11]', `SZ[11]SO[http://littlegolem.net/jsp/game/game.jsp?gid=${gameId}`)
 
 					// getElementByIdSuffix("sgfIn").value = sgf
-					// showBoard()
+					
 
 					getElementByIdSuffix('goLgMsg').innerText = 'game loaded from Little Golem'
 					DataObject.setValue('offset', [0, 0])
 					DataObject.setValue("variantSgf", sgf)
+					showBoard()
 				});
 			}
 		).catch(function (err) {

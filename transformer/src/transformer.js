@@ -402,7 +402,7 @@ function transformer(options) {
 			currentPath = {
 				m: 0
 			},
-			cleanerRegEx = /^[a-zA-Z :0-9\-(\r\n]+GoVariantsTransformer\)--[\r\n]*/,
+			cleanerRegEx = /^[a-zA-Z\.\+\- :0-9\-(\r\n]+GoVariantsTransformer\)--[\r\n]*/,
 			cleanComments = () => {
 				if (node.C !== undefined) {
 					node.C = node.C.replace(cleanerRegEx, '')
@@ -814,6 +814,11 @@ function transformer(options) {
 				AR
 				LN
 				*/
+				
+				if (node.C && node.C.indexOf('GoVariantsDoScoreHere')>-1) {
+					node.SC='2'
+					node.C = node.C.replace('GoVariantsDoScoreHere','')
+				}
 
 				; /*note this semicolon is needed! */
 				[
@@ -828,6 +833,7 @@ function transformer(options) {
 					} else {
 						points = [node[sgfProperty]]
 					}
+
 					if (node.SC && sgfProperty === 'MA') {
 						stonesMarkedForScoring =
 							points
@@ -849,6 +855,8 @@ function transformer(options) {
 						.map($.coords2String)
 					node[sgfProperty] = points
 				})
+				
+
 				if (options.addMoveNumber)
 					node.MN = currentPath.m
 
@@ -863,10 +871,16 @@ function transformer(options) {
 				let updatedComment = false
 				if (node.SC) {
 					tGo.rules.komi = parseFloat(wrappedGame.game.nodes[0].KM)
-
-					let score = tGo.board.score(stonesMarkedForScoring),
+					let score = {},
 						scoreOption = parseInt(node.SC)
-					if ((scoreOption & 1) === 1) {
+					score = tGo.board.score(stonesMarkedForScoring)	
+					
+					if (score.error)
+					{
+						updatedComment = true
+						comment(isAPass, isBlack, `An error occurred during the scoring. Error message: ${score.error.message}`)
+					}
+					else if ((scoreOption & 1) === 1) {
 						updatedComment = true
 						comment(isAPass, isBlack, score.RE)
 					} else /*don't want to treat succint and verbose at the same time*/

@@ -28,6 +28,16 @@ $ gulp test
 
 Disclaimer: this installation procedure has not been tested.
 
+## Scoring
+
+0. In order for scoring to work, _marks_ (i.e. “X” marks, represented via “MA” in SGF) should be used to indicate dead stones. 
+1. For each connected (maximal) component of territory, made up of one or several empty intersections and one or several dead stones:
+	1. one (or more) of the dead stones should be _marked_.
+	2. if no dead stones are _marked_, then the area will not be scored as territory; it will be scored as a seki.
+2. If any empty point is marked, then scoring will not work.
+3. If stones of both colours are marked in an inconsistent manner, then scoring will not work.
+4. The scoring method used is [Territory Scoring](https://senseis.xmp.net/?TerritoryScoring). (At some point [Area Scoring](https://senseis.xmp.net/?AreaScoring) may be implemented as well.)
+
 ## Licence
 
 [MIT](https://spdx.org/licenses/MIT.html)

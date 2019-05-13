@@ -119,6 +119,8 @@ display: none !important;
                 <br />
                 <div id={`${rootId}_updateButtonDiv`} style="display:none">
                     <input type="button" id={`${rootId}_updateButton`} value="update (from board)" /> Press this button after adding marks to the board position in order to get the wraparound effect.
+                    <br />
+                    <input type="button" id={`${rootId}_scoreButton`} value="score" /> Press this button to score the current position. <input type="button" id={`${rootId}_scoreHelpButton`} value="Help for scoring" />
                 </div>
             </div>
 

@@ -62,3 +62,6 @@ typings/
 */node_modules/
 transformer/lib/
 transformer/samples/.*_transformed.sgf
+transformer/ui/editor2.js
+package-lock.json
+t-go log, rough notes.md
