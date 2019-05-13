@@ -350,6 +350,38 @@ describe("engine", function () {
 					expect(x.blackEmpty).toEqual([])
 					expect(x.blackDead).toEqual([[1, 1]])
 				})
+				var smartGame, transformer;
+		try {
+			smartGame = require('../../transformer/node_modules/smartgame')
+			transformer = require('../../transformer/src/transformer')()
+		} catch (error) {
+			var msg = "some tests scoring were not run because govariants-transformer is not present"
+			it(msg, () => { })
+			console.log(msg)
+			return
+		}
+				it("handles marks that aren't dead stones", () => {
+					let sgf = `(;GM[1]FF[4]CA[UTF-8]AP[go-variants-transformer]ST[0]SZ[4]KM[0]HA[0]PB[Black]PW[White]C[Here is a small sample game of Toroidal Go. It ends in a seki.];B[ad];W[bd];B[bc];W[ac];B[bb];W[aa];B[ab];W[dd];B[ca];W[cd];B[db];W[dc];B[cc];MA[ba][cb]C[It’s a seki; neither player should play at X now - if they do, they put their own stones in atari. This is shown in the next two variations.]W[da])`
+					let
+						parsed = smartGame.parse(sgf)
+						, engine = goEngine({ boardMode: 't', boardDimensions: [4, 4], rules: { komi: 6.5} })
+					for (let index = 1 /*omit first node*/; index < parsed.gameTrees[0].nodes.length; index++) {
+						const node = parsed.gameTrees[0].nodes[index],
+							colour = node.B ? 'b' : 'w',
+							coords1 = node[colour.toUpperCase()],
+							coords2 = transformer.translateCoordinates(coords1)
+						try {
+							engine.play(colour, coords2)
+						} catch (error) {
+							console.log(error)
+						}
+		
+					}
+					const lastNode = parsed.gameTrees[0].nodes[parsed.gameTrees[0].nodes.length - 1]
+						, marked = lastNode.MA.map(transformer.translateCoordinates)
+						, score = engine.board.score(marked)
+					expect(score.error.message).toEqual('invalid marked dead stone(s)')
+				})
 
 			})
 

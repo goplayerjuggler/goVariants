@@ -1,4 +1,9 @@
 /* globals module: false, require: false */
+function LocalError(message, code) {
+	this.message = message
+	this.code = code
+}
+
 module.exports = function (options) {
 	'use strict';
 	let _fi = require('lodash/findIndex')
@@ -195,179 +200,187 @@ module.exports = function (options) {
 	$.board.chainHasLiberty = chainHasLiberty 
 
 	$.board.score = function (deadStones) {
-		/*
-		go through the whole board 
-		*/
-		if (deadStones === undefined) {
-			deadStones = []
-		}
-
-		let result = {
-			blackEmpty: []
-			, whiteEmpty: []
-			, dame: []
-			, blackAlive: []
-			, whiteAlive: []
-			, blackDead: []
-			, whiteDead: []
-			, totalBlackCaptured: $.board.captured[0] //nb B stones removed by W during the game
-			, totalWhiteCaptured: $.board.captured[1] //nb W stones removed by B during the game
-			//todo:could replace by an class. data stored in a big array of pairs [point, status]
-		}
-
-		for (let index = 0; index < deadStones.length; index++) {
-			const deadStone = deadStones[index];
-			let deadColour = $.board.getColour(deadStone)
-			if (deadColour === 'e') throw new Error('invalid marked dead stone')
-			let
-				deadToFill = deadColour === 'b' ? result.blackDead : result.whiteDead
-				, emptyToFill = deadColour === 'b' ? result.whiteEmpty : result.blackEmpty
-				, aliveToFill = deadColour === 'b' ? result.whiteAlive : result.blackAlive
-				, processPoint = (point, colour) => {
-					if (colour === deadColour && myIndexOf(deadToFill, point) < 0) {
-						deadToFill.push(point)
-						emptyToFill.push(point)
-					}
-					if ((colour === deadColour || colour === 'e') && myIndexOf(emptyToFill, point) < 0) {
-						emptyToFill.push(point)
-					}
-					if (colour !== deadColour && colour !== 'e' && myIndexOf(aliveToFill, point) < 0) {
-						aliveToFill.push(point)
-					}
-				}
-				, getColourForDeadComponent = (point) => {
-					let colour = $.board.getColour(point)
-					processPoint(point, colour)
-					return colour === deadColour ? 'e' : colour
-				}
-			processPoint(deadStone, deadColour)
-			$.board.chainHasLiberty(deadStone, 'e', '', getColourForDeadComponent)
-		}
-
-		for (let i = 0,exitLoop = false; i < options.boardDimensions[0]; i++) {
-			if (exitLoop) {
-				break
+		try {
+			/*
+			go through the whole board 
+			*/
+			if (deadStones === undefined) {
+				deadStones = []
 			}
-			for (let j = 0; j < options.boardDimensions[1]; j++) {
-				if (result.blackEmpty.length
-					+ result.whiteEmpty.length
-					+ result.dame.length
-					+ result.blackAlive.length
-					+ result.whiteAlive.length
-					// + result.blackDead.length
-					// + result.whiteDead.length
-					=== options.boardDimensions[0] * options.boardDimensions[1]
-				) {
-					exitLoop = true
+
+			let result = {
+				blackEmpty: []
+				, whiteEmpty: []
+				, dame: []
+				, blackAlive: []
+				, whiteAlive: []
+				, blackDead: []
+				, whiteDead: []
+				, totalBlackCaptured: $.board.captured[0] //nb B stones removed by W during the game
+				, totalWhiteCaptured: $.board.captured[1] //nb W stones removed by B during the game
+				//todo:could replace by an class. data stored in a big array of pairs [point, status]
+			}
+
+			for (let index = 0; index < deadStones.length; index++) {
+				const deadStone = deadStones[index];
+				let deadColour = $.board.getColour(deadStone)
+				if (deadColour === 'e') throw new LocalError('invalid marked dead stone(s)', 1)
+				let
+					deadToFill = deadColour === 'b' ? result.blackDead : result.whiteDead
+					, emptyToFill = deadColour === 'b' ? result.whiteEmpty : result.blackEmpty
+					, aliveToFill = deadColour === 'b' ? result.whiteAlive : result.blackAlive
+					, processPoint = (point, colour) => {
+						if (colour === deadColour && myIndexOf(deadToFill, point) < 0) {
+							deadToFill.push(point)
+							emptyToFill.push(point)
+						}
+						if ((colour === deadColour || colour === 'e') && myIndexOf(emptyToFill, point) < 0) {
+							emptyToFill.push(point)
+						}
+						if (colour !== deadColour && colour !== 'e' && myIndexOf(aliveToFill, point) < 0) {
+							aliveToFill.push(point)
+						}
+					}
+					, getColourForDeadComponent = (point) => {
+						let colour = $.board.getColour(point)
+						processPoint(point, colour)
+						return colour === deadColour ? 'e' : colour
+					}
+				processPoint(deadStone, deadColour)
+				$.board.chainHasLiberty(deadStone, 'e', '', getColourForDeadComponent)
+			}
+
+			for (let i = 0,exitLoop = false; i < options.boardDimensions[0]; i++) {
+				if (exitLoop) {
 					break
 				}
-				const point = [i, j], colour = $.board.getColour(point)
+				for (let j = 0; j < options.boardDimensions[1]; j++) {
+					if (result.blackEmpty.length
+						+ result.whiteEmpty.length
+						+ result.dame.length
+						+ result.blackAlive.length
+						+ result.whiteAlive.length
+						// + result.blackDead.length
+						// + result.whiteDead.length
+						=== options.boardDimensions[0] * options.boardDimensions[1]
+					) {
+						exitLoop = true
+						break
+					}
+					const point = [i, j], colour = $.board.getColour(point)
 
-				if (colour === 'b'
-				) {
-					if (myIndexOf(result.blackAlive, point) < 0
-						&& myIndexOf(result.blackDead, point) < 0) {
-						result.blackAlive.push(point)
-					} else continue
-				}
-				if (colour === 'w') {
-					if (myIndexOf(result.whiteAlive, point) < 0
-						&& myIndexOf(result.whiteDead, point) < 0) {
-						result.whiteAlive.push(point)
-					} else continue
-				}
-
-				if (colour === 'e') {
-					if (myIndexOf(result.blackEmpty, point) >= 0
-						|| myIndexOf(result.whiteEmpty, point) >= 0
-						|| myIndexOf(result.dame, point) >= 0) {
-						continue
+					if (colour === 'b'
+					) {
+						if (myIndexOf(result.blackAlive, point) < 0
+							&& myIndexOf(result.blackDead, point) < 0) {
+							result.blackAlive.push(point)
+						} else continue
+					}
+					if (colour === 'w') {
+						if (myIndexOf(result.whiteAlive, point) < 0
+							&& myIndexOf(result.whiteDead, point) < 0) {
+							result.whiteAlive.push(point)
+						} else continue
 					}
 
-					let
-						meetsBlack = false
-						, meetsWhite = false
-						, isBlackTerritory = false
-						, isWhiteTerritory = false
-						, getColourForScoring = (point) => {
-
-							let colour = $.board.getColour(point)
-							switch (colour) {
-								case 'b':
-									if (myIndexOf(result.blackDead, point) >= 0) {
-										colour = 'e'
-										isWhiteTerritory = true
-									}
-									else {
-										meetsBlack = true
-										if (myIndexOf(result.blackAlive, point) < 0) {
-											result.blackAlive.push(point)
-										}
-									}
-									break;
-								case 'w':
-									if (myIndexOf(result.whiteDead, point) >= 0) {
-										colour = 'e'
-										isBlackTerritory = true
-									}
-									else {
-										meetsWhite = true
-										if (myIndexOf(result.whiteAlive, point) < 0) {
-											result.whiteAlive.push(point)
-										}
-									}
-									break;
-
-								default://nothing needed for 'e'
-									break;
-							}
-							return colour
+					if (colour === 'e') {
+						if (myIndexOf(result.blackEmpty, point) >= 0
+							|| myIndexOf(result.whiteEmpty, point) >= 0
+							|| myIndexOf(result.dame, point) >= 0) {
+							continue
 						}
-					let emptyComponent = $.board.chainHasLiberty(point, 'e', '', getColourForScoring)
-					if (!meetsBlack && !meetsWhite) {
-						throw new Error('counting an empty board!')
-					}
-					if (isBlackTerritory && isWhiteTerritory) {
-						throw new Error('too many stones marked as dead')
-					}
-					//could store the different empty components: V2 
-					if (meetsBlack && meetsWhite) {
-						result.dame = result.dame.concat(emptyComponent)
-						continue
-					}
-					if (meetsBlack) {
-						result.blackEmpty = result.blackEmpty.concat(emptyComponent)
-						continue
-					}
-					if (meetsWhite) {
-						result.whiteEmpty = result.whiteEmpty.concat(emptyComponent)
-						continue
+
+						let
+							meetsBlack = false
+							, meetsWhite = false
+							, isBlackTerritory = false
+							, isWhiteTerritory = false
+							, getColourForScoring = (point) => {
+
+								let colour = $.board.getColour(point)
+								switch (colour) {
+									case 'b':
+										if (myIndexOf(result.blackDead, point) >= 0) {
+											colour = 'e'
+											isWhiteTerritory = true
+										}
+										else {
+											meetsBlack = true
+											if (myIndexOf(result.blackAlive, point) < 0) {
+												result.blackAlive.push(point)
+											}
+										}
+										break;
+									case 'w':
+										if (myIndexOf(result.whiteDead, point) >= 0) {
+											colour = 'e'
+											isBlackTerritory = true
+										}
+										else {
+											meetsWhite = true
+											if (myIndexOf(result.whiteAlive, point) < 0) {
+												result.whiteAlive.push(point)
+											}
+										}
+										break;
+
+									default://nothing needed for 'e'
+										break;
+								}
+								return colour
+							}
+						let emptyComponent = $.board.chainHasLiberty(point, 'e', '', getColourForScoring)
+						if (!meetsBlack && !meetsWhite) {
+							throw new LocalError('counting an empty board!', 2)
+						}
+						if (isBlackTerritory && isWhiteTerritory) {
+							throw new LocalError('too many stones marked as dead', 3)
+						}
+						//could store the different empty components: V2 
+						if (meetsBlack && meetsWhite) {
+							result.dame = result.dame.concat(emptyComponent)
+							continue
+						}
+						if (meetsBlack) {
+							result.blackEmpty = result.blackEmpty.concat(emptyComponent)
+							continue
+						}
+						if (meetsWhite) {
+							result.whiteEmpty = result.whiteEmpty.concat(emptyComponent)
+							continue
+						}
 					}
 				}
 			}
+			//totals
+			result.totalBlackDead = result.blackDead.length
+			result.totalWhiteDead = result.whiteDead.length
+			result.totalBlackTerritory = result.blackEmpty.length
+			result.totalWhiteTerritory = result.whiteEmpty.length
+
+
+			//todo: implement other rulesets. For now, just do territory + prisoners (Japanese style counting)
+			result.blackScore =
+				result.totalWhiteDead
+				+ result.totalWhiteCaptured
+				+ result.totalBlackTerritory
+			result.whiteScore =
+				result.totalBlackDead
+				+ result.totalBlackCaptured
+				+ result.totalWhiteTerritory
+				+ $.rules.komi
+			let r = result.blackScore - result.whiteScore
+			if (r === 0) result.RE = '0'
+			else if (r > 0) result.RE = 'B+' + r
+			else result.RE = 'W+' + (-r)
+			return result	
+		} catch (error) {
+			if (error instanceof LocalError)
+			{
+				return { error }
+			}
+			else throw error
 		}
-		//totals
-		result.totalBlackDead = result.blackDead.length
-		result.totalWhiteDead = result.whiteDead.length
-		result.totalBlackTerritory = result.blackEmpty.length
-		result.totalWhiteTerritory = result.whiteEmpty.length
-
-
-		//todo: implement other rulesets. For now, just do territory + prisoners (Japanese style counting)
-		result.blackScore =
-			result.totalWhiteDead
-			+ result.totalWhiteCaptured
-			+ result.totalBlackTerritory
-		result.whiteScore =
-			result.totalBlackDead
-			+ result.totalBlackCaptured
-			+ result.totalWhiteTerritory
-			+ $.rules.komi
-		let r = result.blackScore - result.whiteScore
-		if (r === 0) result.RE = '0'
-		else if (r > 0) result.RE = 'B+' + r
-		else result.RE = 'W+' + (-r)
-		return result
 	}
 
 	$.board.empty = function () {
